@@ -1,0 +1,63 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:15
+    container_name: talkam_postgres
+    environment:
+      POSTGRES_USER: talkam
+      POSTGRES_PASSWORD: talkam
+      POSTGRES_DB: talkam
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./artifacts/data/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U talkam"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:7-alpine
+    container_name: talkam_redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+  minio:
+    image: minio/minio:RELEASE.2024-10-02T17-50-41Z
+    container_name: talkam_minio
+    environment:
+      MINIO_ACCESS_KEY: talkam
+      MINIO_SECRET_KEY: talkamsecret
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio:/data
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: talkam_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: talkam
+      RABBITMQ_DEFAULT_PASS: talkam
+  mailhog:
+    image: mailhog/mailhog
+    container_name: talkam_mailhog
+    ports:
+      - "8025:8025"
+  adminer:
+    image: adminer:4
+    container_name: talkam_adminer
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8080:8080"
+volumes:
+  pgdata:
+  minio:

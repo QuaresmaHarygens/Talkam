@@ -1,0 +1,374 @@
+openapi: 3.0.3
+info:
+  title: Talkam Liberia API
+  version: "1.0.0"
+  description: |
+    REST API for Talkam Liberia mobile/web apps. Supports JWT + anonymous ephemeral tokens.
+servers:
+  - url: https://api.talkamliberia.org/v1
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      summary: Register a user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400': { description: Validation error }
+  /auth/login:
+    post:
+      summary: Login and obtain JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Auth token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401': { description: Invalid credentials }
+  /auth/anonymous-start:
+    post:
+      summary: Issue ephemeral anonymous token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnonymousStartRequest'
+      responses:
+        '200':
+          description: Ephemeral token details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnonymousStartResponse'
+  /reports/create:
+    post:
+      summary: Create a report
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreateRequest'
+      responses:
+        '201':
+          description: Report created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '409': { description: Duplicate detected }
+  /reports/{id}:
+    get:
+      summary: Fetch report details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { content: { application/json: { schema: { $ref: '#/components/schemas/ReportResponse' } } } }
+        '404': { description: Not found }
+  /reports/{id}/verify:
+    post:
+      summary: Submit verification action
+    
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+      responses:
+        '200': { description: Verification recorded }
+        '403': { description: Not authorized }
+  /reports/{id}/comment:
+    post:
+      summary: Add comment or request info
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+      responses:
+        '201': { description: Comment created }
+  /reports/search:
+    get:
+      summary: Search reports
+      parameters:
+        - in: query
+          name: county
+          schema: { type: string }
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string, enum: [submitted, triaged, verified, resolved] }
+        - in: query
+          name: text
+          schema: { type: string }
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportSummary'
+  /media/upload:
+    post:
+      summary: Request signed upload URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaUploadRequest'
+      responses:
+        '200':
+          description: URL + fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaUploadResponse'
+  /ngos/register:
+    post:
+      summary: Register NGO partner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NGORegisterRequest'
+      responses:
+        '201': { description: NGO pending approval }
+  /ngos/{id}/dashboard:
+    get:
+      summary: NGO dashboard data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dashboard payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NGODashboardResponse'
+  /admin/flags:
+    get:
+      summary: Fetch moderation flags
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlagResponse'
+  /admin/users:
+    get:
+      summary: List or filter users for RBAC
+      parameters:
+        - name: role
+          in: query
+          schema: { type: string }
+      responses:
+        '200': { content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/User' } } } } }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [full_name, phone, password]
+      properties:
+        full_name: { type: string }
+        phone: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+        language: { type: string, default: en-LR }
+    LoginRequest:
+      type: object
+      required: [phone, password]
+      properties:
+        phone: { type: string }
+        password: { type: string, format: password }
+        device_id: { type: string }
+    AnonymousStartRequest:
+      type: object
+      properties:
+        device_hash: { type: string }
+        county: { type: string }
+        capabilities: { type: array, items: { type: string } }
+    AnonymousStartResponse:
+      type: object
+      properties:
+        token: { type: string }
+        expires_in: { type: integer }
+        offline_queue_limit: { type: integer }
+    AuthResponse:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        expires_in: { type: integer }
+        roles: { type: array, items: { type: string } }
+    ReportCreateRequest:
+      type: object
+      required: [category, summary, location]
+      properties:
+        category: { type: string }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        anonymous: { type: boolean }
+        summary: { type: string }
+        details: { type: string }
+        media: { type: array, items: { $ref: '#/components/schemas/MediaRef' } }
+        location: { $ref: '#/components/schemas/Location' }
+        witness_count: { type: integer }
+        offline_reference: { type: string }
+        sms_reference: { type: string }
+    ReportResponse:
+      type: object
+      properties:
+        id: { type: string }
+        status: { type: string }
+        created_at: { type: string, format: date-time }
+        summary: { type: string }
+        details: { type: string }
+        category: { type: string }
+        severity: { type: string }
+        location: { $ref: '#/components/schemas/Location' }
+        verification_score: { type: number }
+        media: { type: array, items: { $ref: '#/components/schemas/MediaRef' } }
+        timeline: { type: array, items: { $ref: '#/components/schemas/TimelineEvent' } }
+    ReportSummary:
+      type: object
+      properties:
+        id: { type: string }
+        summary: { type: string }
+        category: { type: string }
+        county: { type: string }
+        severity: { type: string }
+        status: { type: string }
+    MediaRef:
+      type: object
+      properties:
+        key: { type: string }
+        type: { type: string, enum: [photo, video, audio] }
+        checksum: { type: string }
+        blur_faces: { type: boolean }
+    Location:
+      type: object
+      properties:
+        latitude: { type: number }
+        longitude: { type: number }
+        county: { type: string }
+        district: { type: string }
+        description: { type: string }
+    TimelineEvent:
+      type: object
+      properties:
+        at: { type: string, format: date-time }
+        action: { type: string }
+        actor: { type: string }
+        notes: { type: string }
+    VerificationRequest:
+      type: object
+      properties:
+        action: { type: string, enum: [confirm, request_info, reject] }
+        comment: { type: string }
+        witness_count: { type: integer }
+        attachments: { type: array, items: { $ref: '#/components/schemas/MediaRef' } }
+    CommentRequest:
+      type: object
+      properties:
+        body: { type: string }
+        visibility: { type: string, enum: [reporter, ngo, admin, public] }
+    MediaUploadRequest:
+      type: object
+      properties:
+        media_type: { type: string }
+        content_length: { type: integer }
+        checksum: { type: string }
+        blur_faces: { type: boolean }
+    MediaUploadResponse:
+      type: object
+      properties:
+        upload_url: { type: string }
+        expires_in: { type: integer }
+        media_key: { type: string }
+        headers: { type: object }
+    NGORegisterRequest:
+      type: object
+      properties:
+        name: { type: string }
+        contact_email: { type: string }
+        phone: { type: string }
+        mission_focus: { type: array, items: { type: string } }
+        counties: { type: array, items: { type: string } }
+    NGODashboardResponse:
+      type: object
+      properties:
+        pending_reports: { type: array, items: { $ref: '#/components/schemas/ReportSummary' } }
+        follow_ups: { type: array, items: { $ref: '#/components/schemas/TimelineEvent' } }
+        exports:
+          type: object
+          properties:
+            csv_url: { type: string }
+            pdf_url: { type: string }
+    FlagResponse:
+      type: object
+      properties:
+        id: { type: string }
+        report_id: { type: string }
+        reason: { type: string }
+        status: { type: string }
+        created_at: { type: string, format: date-time }
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        display_name: { type: string }
+        role: { type: string }
+        verified: { type: boolean }

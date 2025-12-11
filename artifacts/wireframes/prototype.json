@@ -1,0 +1,20 @@
+{
+  "prototype": "Talkam Liberia",
+  "description": "Clickable flow map describing transitions between key mobile-first screens",
+  "defaultDevice": "Pixel 5",
+  "screens": [
+    {"id": "onboarding", "name": "Onboarding", "entry": true, "actions": [{"target": "permissions", "type": "tap", "cta": "Get Started"}]},
+    {"id": "permissions", "name": "Permissions", "actions": [{"target": "report_home", "type": "swipe", "cta": "Allow anonymously"}, {"target": "settings", "type": "tap", "cta": "Learn more"}]},
+    {"id": "report_home", "name": "Report Creation", "actions": [{"target": "report_audio", "type": "tap", "cta": "Voice mode"}, {"target": "media_upload", "type": "tap", "cta": "Add media"}, {"target": "offline_queue", "type": "auto", "cta": "Save offline"}]},
+    {"id": "report_audio", "name": "Audio-only Mode", "actions": [{"target": "report_review", "type": "tap", "cta": "Transcribe & edit"}]},
+    {"id": "report_review", "name": "Submit", "actions": [{"target": "feed_map", "type": "tap", "cta": "Submit report"}]},
+    {"id": "feed_map", "name": "Feed & Map", "actions": [{"target": "report_detail", "type": "tap", "cta": "Open highlighted report"}, {"target": "alerts", "type": "tap", "cta": "Enable crisis alerts"}]},
+    {"id": "report_detail", "name": "Report Detail", "actions": [{"target": "verification", "type": "tap", "cta": "Verify"}, {"target": "comments", "type": "tap", "cta": "Request info"}]},
+    {"id": "verification", "name": "Verification", "actions": [{"target": "ngo_dashboard", "type": "tap", "cta": "Escalate"}]},
+    {"id": "ngo_dashboard", "name": "NGO Dashboard", "role": "ngo", "actions": [{"target": "export", "type": "tap", "cta": "Export CSV"}]},
+    {"id": "gov_dashboard", "name": "Gov Dashboard", "role": "agency", "actions": [{"target": "actions", "type": "tap", "cta": "Assign"}]},
+    {"id": "admin_console", "name": "Admin Console", "role": "admin", "actions": [{"target": "flags", "type": "tap", "cta": "Review flags"}]},
+    {"id": "analytics", "name": "Analytics Dashboard", "role": "analyst", "actions": [{"target": "settings", "type": "tap", "cta": "Filters"}]},
+    {"id": "settings", "name": "Settings & Help", "actions": [{"target": "permissions", "type": "tap", "cta": "Review privacy"}]}
+  ]
+}
