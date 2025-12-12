@@ -21,6 +21,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   List<Report> _reports = [];
   bool _loading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -28,8 +29,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     _loadReports();
   }
 
+  String? _errorMessage;
+
   Future<void> _loadReports() async {
     try {
+      setState(() {
+        _loading = true;
+        _errorMessage = null;
+      });
+
+      // Check connectivity first
+      final hasConnection = await ConnectivityHelper.hasInternetConnection();
+      if (!hasConnection) {
+        setState(() {
+          _loading = false;
+          _errorMessage = 'No internet connection. Please check your network settings.';
+        });
+        return;
+      }
+
       final client = ref.read(apiClientProvider);
       final response = await client.searchReports();
       final results = (response['results'] as List)
@@ -38,9 +56,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       setState(() {
         _reports = results;
         _loading = false;
+        _errorMessage = null;
       });
     } catch (e) {
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _errorMessage = 'Failed to load reports. ${e.toString().contains('SocketException') || e.toString().contains('connection') ? 'Please check your connection and try again.' : 'Please try again later.'}';
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage!),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: _loadReports,
+            ),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
@@ -92,6 +126,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             _buildActionCards(),
 
             const SizedBox(height: AppTheme.spacing24),
+
+            // Error Message
+            if (_errorMessage != null && !_loading)
+              AppCard(
+                backgroundColor: Colors.red.shade50,
+                margin: const EdgeInsets.only(bottom: AppTheme.spacing16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red),
+                    const SizedBox(width: AppTheme.spacing8),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: AppTheme.bodySmall.copyWith(color: Colors.red.shade700),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _loadReports,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
 
             // Recent Reports Section
             Row(
@@ -236,6 +293,40 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildRecentReports() {
+    if (_loading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(AppTheme.spacing24),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_reports.isEmpty) {
+      return AppCard(
+        child: Column(
+          children: [
+            Icon(
+              Icons.inbox_outlined,
+              size: 48,
+              color: AppTheme.mutedForeground,
+            ),
+            const SizedBox(height: AppTheme.spacing16),
+            Text(
+              'No reports yet',
+              style: AppTheme.heading3.copyWith(color: AppTheme.mutedForeground),
+            ),
+            const SizedBox(height: AppTheme.spacing8),
+            Text(
+              'Be the first to report an issue in your community',
+              style: AppTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       children: _reports.take(5).map((report) {
         return AppCard(
