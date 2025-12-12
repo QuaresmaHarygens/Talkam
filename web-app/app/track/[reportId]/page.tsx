@@ -7,6 +7,16 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
+
+interface TrackingResponse {
+  report_id: string;
+  status: string;
+  category: string;
+  severity: string;
+  created_at: string;
+  updated_at?: string;
+  message: string;
+}
 import { ClockIcon, CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const statusConfig: Record<string, { icon: any; color: string; label: string }> = {

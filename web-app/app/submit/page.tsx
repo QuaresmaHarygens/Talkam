@@ -108,27 +108,38 @@ export default function SubmitReportPage() {
   };
 
   const uploadFile = async (file: File): Promise<string> => {
-    // Get presigned URL from backend
-    const { upload_url, media_key } = await mediaApi.getUploadUrl(
-      file.type,
-      file.name
-    );
-
-    // Upload file to S3 using presigned URL
-    const response = await fetch(upload_url, {
-      method: 'PUT',
-      body: file,
-      headers: {
-        'Content-Type': file.type,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to upload file: ${response.statusText}`);
+    // Determine media type
+    let mediaType: 'photo' | 'video' | 'audio' = 'photo'
+    if (file.type.startsWith('video/')) {
+      mediaType = 'video'
+    } else if (file.type.startsWith('audio/')) {
+      mediaType = 'audio'
     }
 
-    return media_key;
-  };
+    // Get presigned URL from backend
+    const uploadData = await apiClient.requestUploadUrl({
+      type: mediaType,
+      key: file.name,
+    })
+
+    // Upload file to S3 using presigned URL
+    const formData = new FormData()
+    Object.entries(uploadData.fields).forEach(([key, value]) => {
+      formData.append(key, value)
+    })
+    formData.append('file', file)
+
+    const response = await fetch(uploadData.upload_url, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to upload file: ${response.statusText}`)
+    }
+
+    return uploadData.media_key
+  }
 
   const onSubmit = async (data: ReportFormData) => {
     try {
