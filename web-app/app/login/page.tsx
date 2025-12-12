@@ -7,25 +7,65 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useStore } from "@/lib/store"
-import { ArrowLeft } from "lucide-react"
+import { apiClient } from "@/lib/api/client"
+import { ArrowLeft, AlertCircle } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
   const setUser = useStore((state) => state.setUser)
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
+  const [fullName, setFullName] = useState("")
   const [isSignUp, setIsSignUp] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Mock authentication
-    setUser({
-      id: "1",
-      name: email.split("@")[0],
-      email,
-      isGuest: false,
-    })
-    router.push("/dashboard")
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (isSignUp) {
+        // Register
+        const response = await apiClient.register({
+          full_name: fullName,
+          email: email || undefined,
+          phone: phone || undefined,
+          password,
+        })
+        if (response.access_token) {
+          setUser({
+            id: response.user?.id || "1",
+            name: response.user?.full_name || fullName,
+            email: response.user?.email || email,
+            isGuest: false,
+          })
+          router.push("/dashboard")
+        }
+      } else {
+        // Login - backend expects phone, but we'll try email if phone is empty
+        const loginData = phone || email
+        const response = await apiClient.login({
+          phone: loginData,
+          password,
+        })
+        if (response.access_token) {
+          setUser({
+            id: response.user?.id || "1",
+            name: response.user?.full_name || email.split("@")[0],
+            email: response.user?.email || email,
+            isGuest: false,
+          })
+          router.push("/dashboard")
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Authentication failed")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -46,55 +86,20 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {error && (
-              <div className="mb-4 p-3 rounded-md bg-destructive/10 text-destructive text-sm flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                {error}
-              </div>
-            )}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && (
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Full Name
-                  </label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
-              )}
               <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium">
-                  Phone {!isSignUp && "(or Email)"}
+                <label htmlFor="email" className="text-sm font-medium">
+                  Email
                 </label>
                 <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+231 77 123 4567"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required={!isSignUp}
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </div>
-              {isSignUp && (
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">
-                    Email (Optional)
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              )}
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">
                   Password
@@ -108,21 +113,8 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              {isSignUp && (
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Full Name
-                  </label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                  />
-                </div>
-              )}
-              <Button type="submit" className="w-full">
-                {isSignUp ? "Sign Up" : "Sign In"}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
               </Button>
             </form>
 
@@ -142,14 +134,40 @@ export default function LoginPage() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => {
-                  setUser({
-                    id: null,
-                    name: null,
-                    email: null,
-                    isGuest: true,
-                  })
-                  router.push("/dashboard")
+                onClick={async () => {
+                  try {
+                    // Generate a simple device hash
+                    const deviceHash = typeof window !== 'undefined' 
+                      ? localStorage.getItem('device_hash') || `guest_${Date.now()}`
+                      : `guest_${Date.now()}`
+                    
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('device_hash', deviceHash)
+                    }
+
+                    const response = await apiClient.anonymousStart({
+                      device_hash: deviceHash,
+                    })
+                    
+                    if (response.access_token) {
+                      setUser({
+                        id: response.user?.id || null,
+                        name: null,
+                        email: null,
+                        isGuest: true,
+                      })
+                      router.push("/dashboard")
+                    }
+                  } catch (err) {
+                    // Fallback to local guest mode if API fails
+                    setUser({
+                      id: null,
+                      name: null,
+                      email: null,
+                      isGuest: true,
+                    })
+                    router.push("/dashboard")
+                  }
                 }}
               >
                 Continue as Guest
