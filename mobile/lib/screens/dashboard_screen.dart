@@ -4,6 +4,7 @@ import '../providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_button.dart';
+import '../utils/connectivity_helper.dart';
 import 'create_report_screen.dart';
 import 'map_screen.dart';
 import 'community/community_hub_screen.dart';

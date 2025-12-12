@@ -1,25 +1,108 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { TabBar } from "@/components/tab-bar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStore } from "@/lib/store"
-import { mockAPI } from "@/lib/mock/api"
-import { FileText, CheckCircle, Users, MapPin, Plus, ArrowRight } from "lucide-react"
+import { apiClient } from "@/lib/api/client"
+import { FileText, CheckCircle, Users, MapPin, Plus, ArrowRight, AlertCircle } from "lucide-react"
 
 export default function DashboardPage() {
   const { reports, setReports, setNotifications } = useStore()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Load data
-    mockAPI.reports.list().then(setReports)
-    mockAPI.notifications.list().then(setNotifications)
+    const loadData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        // Load reports
+        const reportsResponse = await apiClient.searchReports({ page_size: 10 })
+        const transformedReports = reportsResponse.results.map((r: any) => ({
+          id: r.id,
+          summary: r.summary || '',
+          category: r.category || 'unknown',
+          severity: r.severity || 'medium',
+          status: r.status || 'submitted',
+          location: {
+            latitude: r.location?.latitude || 0,
+            longitude: r.location?.longitude || 0,
+            county: r.county || r.location?.county || 'Unknown',
+            district: r.district || r.location?.district,
+          },
+          createdAt: r.created_at || new Date().toISOString(),
+          verificationScore: r.verification_score,
+          witnessCount: r.witness_count,
+        }))
+        setReports(transformedReports)
+
+        // Load notifications
+        const notificationsResponse = await apiClient.getNotifications({ limit: 10 })
+        const transformedNotifications = (notificationsResponse.notifications || []).map((n: any) => ({
+          id: n.id,
+          title: n.title || 'Notification',
+          message: n.message || '',
+          type: n.notification_type?.includes('challenge') ? 'challenge' : 'report',
+          read: n.read || false,
+          createdAt: n.created_at || new Date().toISOString(),
+          actionUrl: n.report_id ? `/verify/${n.report_id}` : n.challenge_id ? `/challenges/${n.challenge_id}` : undefined,
+        }))
+        setNotifications(transformedNotifications)
+      } catch (err) {
+        console.error('Error loading dashboard data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
   }, [setReports, setNotifications])
 
   const recentReports = reports.slice(0, 5)
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col pb-16">
+        <Navbar />
+        <main className="container mx-auto flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading dashboard...</p>
+          </div>
+        </main>
+        <TabBar />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col pb-16">
+        <Navbar />
+        <main className="container mx-auto flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-destructive" />
+                <CardTitle>Error Loading Dashboard</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()}>Retry</Button>
+            </CardContent>
+          </Card>
+        </main>
+        <TabBar />
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col pb-16">

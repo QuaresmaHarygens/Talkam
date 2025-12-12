@@ -46,20 +46,55 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-3 rounded-md bg-destructive/10 text-destructive text-sm flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                {error}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {isSignUp && (
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium">
+                    Full Name
+                  </label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
-                  Email
+                <label htmlFor="phone" className="text-sm font-medium">
+                  Phone {!isSignUp && "(or Email)"}
                 </label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  id="phone"
+                  type="tel"
+                  placeholder="+231 77 123 4567"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required={!isSignUp}
                 />
               </div>
+              {isSignUp && (
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Email (Optional)
+                  </label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">
                   Password
