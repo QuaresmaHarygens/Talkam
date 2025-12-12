@@ -63,10 +63,31 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Notifications'),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Never Miss a Beat',
+          style: TextStyle(
+            color: Color(0xFFE91E63),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(30),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              'Real-time notifications right at your fingertips.',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
         actions: [
           if (_unreadCount > 0)
             Padding(
@@ -122,39 +143,101 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       final isRead = notification['read'] as bool? ?? false;
                       final actionTaken = notification['action_taken'] as bool? ?? false;
                       
+                      // Determine notification type
+                      final isChallengeNotification = notification['challenge_id'] != null;
+                      final notificationType = notification['notification_type'] as String? ?? '';
+                      
                       return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        color: isRead ? null : Colors.blue.shade50,
+                        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isRead ? Colors.grey.shade200 : const Color(0xFFE91E63).withOpacity(0.3),
+                            width: isRead ? 1 : 2,
+                          ),
+                        ),
                         child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: actionTaken
-                                ? Colors.green
-                                : isRead
-                                    ? Colors.grey
-                                    : Colors.blue,
-                            child: Icon(
-                              actionTaken
-                                  ? Icons.check
-                                  : Icons.notifications_active,
-                              color: Colors.white,
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: isChallengeNotification
+                                  ? const Color(0xFFE91E63)
+                                  : (actionTaken
+                                      ? Colors.green
+                                      : isRead
+                                          ? Colors.grey.shade400
+                                          : Colors.blue),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: isChallengeNotification
+                                  ? const Text(
+                                      'C',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : Icon(
+                                      actionTaken
+                                          ? Icons.check
+                                          : Icons.notifications_active,
+                                      color: Colors.white,
+                                    ),
                             ),
                           ),
                           title: Text(
                             notification['title'] as String? ?? 'Notification',
                             style: TextStyle(
                               fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black87,
                             ),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(notification['message'] as String? ?? ''),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    isChallengeNotification ? 'Community' : 'Report',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    ' • Just now',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                notification['message'] as String? ?? '',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
                               if (notification['report_category'] != null)
-                                Text(
-                                  '${notification['report_category']} • ${notification['report_severity']}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    '${notification['report_category']} • ${notification['report_severity']}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
                                   ),
                                 ),
                             ],

@@ -63,7 +63,8 @@ async def get_notifications(
                 responses.append(
                     NotificationResponse(
                         id=str(notification.id),
-                        report_id=str(notification.report_id),
+                        report_id=str(notification.report_id) if notification.report_id else None,
+                        challenge_id=str(notification.challenge_id) if notification.challenge_id else None,
                         title=notification.title,
                         message=notification.message,
                         read=notification.read,
@@ -98,6 +99,7 @@ async def get_notifications(
                 NotificationResponse(
                     id=str(notification.id),
                     report_id=str(notification.report_id) if notification.report_id else None,
+                    challenge_id=str(notification.challenge_id) if notification.challenge_id else None,
                     title=notification.title,
                     message=notification.message,
                     read=notification.read,

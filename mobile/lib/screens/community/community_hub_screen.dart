@@ -15,12 +15,18 @@ class CommunityHubScreen extends ConsumerStatefulWidget {
 
 class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
   List<Challenge> _challenges = [];
+  List<Challenge> _activeChallenges = [];
+  List<Challenge> _completedChallenges = [];
   bool _loading = true;
+  String _selectedFilter = 'active'; // 'active' or 'completed'
   String? _selectedCategory;
   Position? _currentPosition;
+  int _outstandingCount = 0;
+  int _userPoints = 0;
+  double _userBalance = 0.0;
 
   final Map<String, String> _categories = {
-    'all': 'All',
+    'all': 'All Challenges',
     'social': 'Social',
     'health': 'Health',
     'education': 'Education',
@@ -100,14 +106,29 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
         longitude: _currentPosition!.longitude,
         radiusKm: 5.0,
         category: _selectedCategory == 'all' ? null : _selectedCategory,
+        status: _selectedFilter,
       );
 
       final challengesList = (response['challenges'] as List)
           .map((c) => Challenge.fromJson(c as Map<String, dynamic>))
           .toList();
 
+      // Separate active and completed
+      final active = challengesList.where((c) => c.status == 'active').toList();
+      final completed = challengesList.where((c) => c.status == 'completed').toList();
+
+      // Calculate outstanding (expiring soon)
+      final now = DateTime.now();
+      _outstandingCount = active.where((c) {
+        if (c.expiresAt == null) return false;
+        final daysUntilExpiry = c.expiresAt!.difference(now).inDays;
+        return daysUntilExpiry <= 20 && daysUntilExpiry > 0;
+      }).length;
+
       setState(() {
         _challenges = challengesList;
+        _activeChallenges = active;
+        _completedChallenges = completed;
         _loading = false;
       });
     } catch (e) {
@@ -120,237 +141,598 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
     }
   }
 
+  int _calculatePoints(Challenge challenge) {
+    // Calculate points based on participation and progress
+    int basePoints = challenge.participantsCount * 10;
+    int progressPoints = (challenge.progressPercentage / 10).round() * 5;
+    return basePoints + progressPoints;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Community Hub'),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const CreateChallengeScreen(),
-                ),
-              ).then((_) => _loadChallenges());
-            },
-            tooltip: 'Create Challenge',
-          ),
-        ],
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Top Navigation Bar
+            _buildTopNavigation(),
+            
+            // Outstanding Challenges Banner
+            if (_outstandingCount > 0) _buildOutstandingBanner(),
+            
+            // Your Summary Section
+            _buildSummarySection(),
+            
+            // Active/Completed Tabs
+            _buildFilterTabs(),
+            
+            // Category Cards
+            _buildCategoryCards(),
+            
+            // Challenges List
+            Expanded(
+              child: _buildChallengesList(),
+            ),
+          ],
+        ),
       ),
-      body: Column(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const CreateChallengeScreen(),
+            ),
+          ).then((_) => _loadChallenges());
+        },
+        backgroundColor: const Color(0xFFE91E63), // Hot pink
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildTopNavigation() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Category filter chips
+          // App Logo
           Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              children: _categories.entries.map((entry) {
-                final isSelected = _selectedCategory == entry.key || (_selectedCategory == null && entry.key == 'all');
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: FilterChip(
-                    label: Text(entry.value),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedCategory = entry.key == 'all' ? null : entry.key;
-                      });
-                      _loadChallenges();
-                    },
-                    selectedColor: Colors.orange.shade100,
-                    checkmarkColor: Colors.orange,
-                  ),
-                );
-              }).toList(),
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE91E63), // Hot pink
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: Text(
+                'T',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
-          // Challenges list
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _challenges.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.people_outline,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No challenges nearby',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Create the first challenge in your community!',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade500,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 24),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const CreateChallengeScreen(),
-                                  ),
-                                ).then((_) => _loadChallenges());
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text('Create Challenge'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadChallenges,
-                        child: ListView.builder(
-                          itemCount: _challenges.length,
-                          padding: const EdgeInsets.all(8),
-                          itemBuilder: (context, index) {
-                            final challenge = _challenges[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => ChallengeDetailScreen(challengeId: challenge.id),
-                                    ),
-                                  ).then((_) => _loadChallenges());
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              challenge.title,
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                          _getUrgencyChip(challenge.urgencyLevel),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        challenge.description,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            challenge.county ?? 'Unknown location',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Icon(Icons.people, size: 16, color: Colors.grey.shade600),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${challenge.participantsCount}',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Icon(Icons.volunteer_activism, size: 16, color: Colors.grey.shade600),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${challenge.volunteersCount}',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      LinearProgressIndicator(
-                                        value: challenge.progressPercentage / 100,
-                                        backgroundColor: Colors.grey.shade200,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          _getProgressColor(challenge.progressPercentage),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${challenge.progressPercentage.toStringAsFixed(0)}% Complete',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+          // Navigation Icons
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.favorite_border, color: Colors.grey),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: const Icon(Icons.chat_bubble_outline, color: Colors.grey),
+                onPressed: () {},
+              ),
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined, color: Colors.grey),
+                    onPressed: () {},
+                  ),
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Text(
+                        '2',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings_outlined, color: Colors.grey),
+                onPressed: () {},
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _getUrgencyChip(String urgency) {
-    Color color;
-    switch (urgency.toLowerCase()) {
-      case 'critical':
-        color = Colors.red;
-        break;
-      case 'high':
-        color = Colors.orange;
-        break;
-      case 'medium':
-        color = Colors.yellow;
-        break;
-      default:
-        color = Colors.grey;
-    }
-    return Chip(
-      label: Text(urgency.toUpperCase()),
-      backgroundColor: color.withOpacity(0.2),
-      labelStyle: TextStyle(color: color, fontSize: 10),
+  Widget _buildOutstandingBanner() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE91E63), // Hot pink
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '$_outstandingCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'OUTSTANDING CHALLENGES',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Color _getProgressColor(double percentage) {
-    if (percentage >= 75) return Colors.green;
-    if (percentage >= 50) return Colors.blue;
-    if (percentage >= 25) return Colors.orange;
-    return Colors.red;
+  Widget _buildSummarySection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'YOUR SUMMARY',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Column(
+                children: [
+                  Text(
+                    '\$${_userBalance.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'BALANCE',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                width: 1,
+                height: 40,
+                color: Colors.grey.shade300,
+              ),
+              Column(
+                children: [
+                  Text(
+                    _userPoints.toString(),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'POINTS',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: OutlinedButton(
+              onPressed: () {
+                // Navigate to details
+              },
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.grey.shade300),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'SEE DETAILS',
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterTabs() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildFilterTab('active', 'ACTIVE', _activeChallenges.length),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildFilterTab('completed', 'COMPLETED', _completedChallenges.length),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterTab(String filter, String label, int count) {
+    final isSelected = _selectedFilter == filter;
+    return InkWell(
+      onTap: () {
+        setState(() => _selectedFilter = filter);
+        _loadChallenges();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? const Color(0xFFE91E63) : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? const Color(0xFFE91E63) : Colors.grey.shade600,
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                letterSpacing: 1.0,
+              ),
+            ),
+            if (count > 0) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFE91E63).withOpacity(0.1) : Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$count items',
+                  style: TextStyle(
+                    color: isSelected ? const Color(0xFFE91E63) : Colors.grey.shade600,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryCards() {
+    return SizedBox(
+      height: 120,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: _categories.entries.map((entry) {
+          final isSelected = _selectedCategory == entry.key || (_selectedCategory == null && entry.key == 'all');
+          final isAll = entry.key == 'all';
+          return Container(
+            width: 140,
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFFE91E63) : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedCategory = entry.key == 'all' ? null : entry.key;
+                });
+                _loadChallenges();
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isAll)
+                      const Icon(Icons.all_inclusive, color: Colors.white, size: 32)
+                    else
+                      Icon(
+                        _getCategoryIcon(entry.key),
+                        color: isSelected ? Colors.white : Colors.grey.shade600,
+                        size: 32,
+                      ),
+                    const SizedBox(height: 8),
+                    Text(
+                      entry.value.toUpperCase(),
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.grey.shade700,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_challenges.where((c) => entry.key == 'all' || c.category == entry.key).length} items',
+                      style: TextStyle(
+                        color: isSelected ? Colors.white.withOpacity(0.9) : Colors.grey.shade600,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildChallengesList() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final displayChallenges = _selectedFilter == 'active' ? _activeChallenges : _completedChallenges;
+
+    if (displayChallenges.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.people_outline,
+              size: 64,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No ${_selectedFilter} challenges',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Create the first challenge in your community!',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Sort by expiry date (soonest first)
+    displayChallenges.sort((a, b) {
+      if (a.expiresAt == null && b.expiresAt == null) return 0;
+      if (a.expiresAt == null) return 1;
+      if (b.expiresAt == null) return -1;
+      return a.expiresAt!.compareTo(b.expiresAt!);
+    });
+
+    return RefreshIndicator(
+      onRefresh: _loadChallenges,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: displayChallenges.length,
+        itemBuilder: (context, index) {
+          final challenge = displayChallenges[index];
+          final daysUntilExpiry = challenge.expiresAt != null
+              ? challenge.expiresAt!.difference(DateTime.now()).inDays
+              : null;
+          final points = _calculatePoints(challenge);
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.grey.shade200),
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ChallengeDetailScreen(challengeId: challenge.id),
+                  ),
+                ).then((_) => _loadChallenges());
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Category Icon
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE91E63).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _getCategoryIcon(challenge.category),
+                        color: const Color(0xFFE91E63),
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Challenge Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            challenge.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          if (daysUntilExpiry != null && daysUntilExpiry > 0)
+                            Text(
+                              'EXPIRES IN $daysUntilExpiry ${daysUntilExpiry == 1 ? 'DAY' : 'DAYS'}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: daysUntilExpiry <= 5
+                                    ? Colors.red
+                                    : Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            )
+                          else if (challenge.status == 'completed')
+                            Text(
+                              'COMPLETED',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.green.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          if (challenge.progressPercentage < 100 && challenge.status == 'active')
+                            Text(
+                              'SUBMISSION UNDER REVIEW',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.orange.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Points Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '$points points',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'social':
+        return Icons.people;
+      case 'health':
+        return Icons.local_hospital;
+      case 'education':
+        return Icons.school;
+      case 'environmental':
+        return Icons.eco;
+      case 'security':
+        return Icons.security;
+      case 'religious':
+        return Icons.church;
+      case 'infrastructure':
+        return Icons.build;
+      case 'economic':
+        return Icons.attach_money;
+      default:
+        return Icons.flag;
+    }
   }
 }

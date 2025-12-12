@@ -190,23 +190,54 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Create Challenge'),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Create and Share',
+          style: TextStyle(
+            color: Color(0xFFE91E63),
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.grey.shade50,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // Subtitle
+            Center(
+              child: Text(
+                'Easily create content on the go, right from your phone.',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // Title
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Challenge Title',
                 hintText: 'e.g., Community Clean-up Drive',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE91E63), width: 2),
+                ),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -223,9 +254,15 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
             // Category
             DropdownButtonFormField<String>(
               value: _selectedCategory,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Category',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE91E63), width: 2),
+                ),
               ),
               items: _categories.entries.map((entry) {
                 return DropdownMenuItem(
@@ -244,10 +281,16 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Description',
                 hintText: 'Describe your challenge in detail...',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE91E63), width: 2),
+                ),
               ),
               maxLines: 5,
               validator: (value) {
@@ -263,7 +306,10 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
             const SizedBox(height: 16),
 
             // Urgency Level
-            const Text('Urgency Level', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Urgency Level',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 8),
             SegmentedButton<String>(
               segments: const [
@@ -276,16 +322,26 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
               onSelectionChanged: (Set<String> newSelection) {
                 setState(() => _selectedUrgency = newSelection.first);
               },
+              style: SegmentedButton.styleFrom(
+                selectedBackgroundColor: const Color(0xFFE91E63),
+                selectedForegroundColor: Colors.white,
+              ),
             ),
             const SizedBox(height: 16),
 
             // Duration
             TextFormField(
               controller: _durationController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Duration (days)',
                 hintText: 'e.g., 30',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE91E63), width: 2),
+                ),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -294,17 +350,28 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
             // Expected Impact
             TextFormField(
               controller: _expectedImpactController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Expected Impact (optional)',
-                hintText: 'Describe the expected impact of this challenge...',
-                border: OutlineInputBorder(),
+                hintText: 'Describe the expected impact...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE91E63), width: 2),
+                ),
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            // Location
+            // Location Card
             Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade200),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -312,11 +379,14 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.location_on),
+                        const Icon(Icons.location_on, color: Color(0xFFE91E63)),
                         const SizedBox(width: 8),
                         const Text(
                           'Location',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         const Spacer(),
                         if (_gettingLocation)
@@ -330,6 +400,9 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
                             onPressed: _getCurrentLocation,
                             icon: const Icon(Icons.refresh, size: 18),
                             label: const Text('Refresh'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFE91E63),
+                            ),
                           ),
                       ],
                     ),
@@ -357,11 +430,93 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+
+            // Media Section
+            const Text(
+              'PICK A POST FROM YOUR FEED AND SUBMIT IT FOR REVIEW',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
 
-            // Media
-            const Text('Add Media (optional)', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            // Media Grid
+            if (_selectedMedia.isEmpty)
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.image, size: 48, color: Colors.grey.shade400),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No media selected',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: _selectedMedia.length,
+                itemBuilder: (context, index) {
+                  return Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          _selectedMedia[index],
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() => _selectedMedia.removeAt(index));
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            const SizedBox(height: 16),
+
+            // Media Buttons
             Row(
               children: [
                 Expanded(
@@ -374,6 +529,13 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
                     },
                     icon: const Icon(Icons.photo),
                     label: const Text('Photo/Video'),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -387,41 +549,64 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
                     },
                     icon: const Icon(Icons.mic),
                     label: const Text('Audio'),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ),
               ],
             ),
-            if (_selectedMedia.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: _selectedMedia.map((file) {
-                  return Chip(
-                    label: Text(file.path.split('/').last),
-                    onDeleted: () {
-                      setState(() => _selectedMedia.remove(file));
-                    },
-                  );
-                }).toList(),
-              ),
-            ],
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // Submit button
-            ElevatedButton(
-              onPressed: _loading ? null : _submitChallenge,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            // Submit Button
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submitChallenge,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE91E63),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: _loading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'SUBMIT',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
               ),
-              child: _loading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Text('Create Challenge', style: TextStyle(fontSize: 16)),
+            ),
+            const SizedBox(height: 16),
+
+            // Filter Info
+            Center(
+              child: Text(
+                'SHOWING ALL POSTS',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  letterSpacing: 1.0,
+                ),
+              ),
             ),
           ],
         ),

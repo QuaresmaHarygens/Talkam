@@ -94,49 +94,88 @@ class _ChallengeDetailScreenState extends ConsumerState<ChallengeDetailScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(
+        backgroundColor: Colors.white,
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_challenge == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Challenge Details')),
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: const Text('Challenge Details'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 0,
+        ),
         body: const Center(child: Text('Challenge not found')),
       );
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Challenge Details'),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Challenge Details',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Challenge header
+            // Challenge header with gradient
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              color: const Color(0xFF0F172A),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFFE91E63), // Hot pink
+                    Colors.purple.shade700,
+                  ],
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     _challenge!.title,
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Chip(
-                        label: Text(_challenge!.category.toUpperCase()),
-                        backgroundColor: Colors.orange.shade100,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _challenge!.category.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _getUrgencyChip(_challenge!.urgencyLevel),
@@ -147,8 +186,13 @@ class _ChallengeDetailScreenState extends ConsumerState<ChallengeDetailScreen> {
             ),
 
             // Progress bar
-            Padding(
-              padding: const EdgeInsets.all(16),
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -157,23 +201,28 @@ class _ChallengeDetailScreenState extends ConsumerState<ChallengeDetailScreen> {
                     children: [
                       const Text(
                         'Progress',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                       ),
                       Text(
                         '${_challenge!.progressPercentage.toStringAsFixed(0)}%',
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.orange,
+                          color: Color(0xFFE91E63),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   LinearProgressIndicator(
                     value: _challenge!.progressPercentage / 100,
-                    minHeight: 8,
+                    minHeight: 10,
                     backgroundColor: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(5),
                     valueColor: AlwaysStoppedAnimation<Color>(
                       _getProgressColor(_challenge!.progressPercentage),
                     ),
@@ -195,12 +244,17 @@ class _ChallengeDetailScreenState extends ConsumerState<ChallengeDetailScreen> {
                       icon: const Icon(Icons.person_add),
                       label: const Text('Join'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: const Color(0xFFE91E63),
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: _hasJoined
@@ -209,34 +263,53 @@ class _ChallengeDetailScreenState extends ConsumerState<ChallengeDetailScreen> {
                       icon: const Icon(Icons.volunteer_activism),
                       label: const Text('Volunteer'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: Colors.green.shade600,
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // Description
-            Padding(
-              padding: const EdgeInsets.all(16),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Description',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     _challenge!.description,
-                    style: TextStyle(color: Colors.grey.shade700),
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontSize: 15,
+                      height: 1.5,
+                    ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 16),
 
             // Location map
             if (_challenge!.latitude != 0 && _challenge!.longitude != 0) ...[
@@ -298,27 +371,34 @@ class _ChallengeDetailScreenState extends ConsumerState<ChallengeDetailScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatCard(
-                    icon: Icons.people,
-                    label: 'Participants',
-                    value: '${_challenge!.participantsCount}',
+                  Expanded(
+                    child: _buildStatCard(
+                      icon: Icons.people,
+                      label: 'Participants',
+                      value: '${_challenge!.participantsCount}',
+                    ),
                   ),
-                  _buildStatCard(
-                    icon: Icons.volunteer_activism,
-                    label: 'Volunteers',
-                    value: '${_challenge!.volunteersCount}',
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      icon: Icons.volunteer_activism,
+                      label: 'Volunteers',
+                      value: '${_challenge!.volunteersCount}',
+                    ),
                   ),
-                  _buildStatCard(
-                    icon: Icons.attach_money,
-                    label: 'Donors',
-                    value: '${_challenge!.donorsCount}',
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      icon: Icons.attach_money,
+                      label: 'Donors',
+                      value: '${_challenge!.donorsCount}',
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // Progress updates
             Padding(
@@ -430,10 +510,21 @@ class _ChallengeDetailScreenState extends ConsumerState<ChallengeDetailScreen> {
       default:
         color = Colors.grey;
     }
-    return Chip(
-      label: Text(urgency.toUpperCase()),
-      backgroundColor: color.withOpacity(0.2),
-      labelStyle: TextStyle(color: color, fontSize: 10),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        urgency.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
     );
   }
 
