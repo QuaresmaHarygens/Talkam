@@ -109,10 +109,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           unselectedItemColor: Colors.grey.shade600,
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 12,
+            fontSize: 10,
           ),
           unselectedLabelStyle: const TextStyle(
-            fontSize: 12,
+            fontSize: 10,
           ),
           items: [
             BottomNavigationBarItem(
@@ -143,7 +143,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ? Icons.notifications
                           : Icons.notifications_outlined,
                     ),
-              label: 'Notifications',
+              label: 'Alerts',
             ),
             BottomNavigationBarItem(
               icon: Icon(

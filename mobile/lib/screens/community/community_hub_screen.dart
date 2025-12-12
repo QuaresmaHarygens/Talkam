@@ -211,7 +211,7 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
 
   Widget _buildBadgesSection() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -225,26 +225,35 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              _buildBadgeCard(
-                icon: Icons.star,
-                label: 'LEADER',
-                color: const Color(0xFFE91E63),
-              ),
-              const SizedBox(width: 12),
-              _buildBadgeCard(
-                icon: Icons.person_add,
-                label: 'NEW USER',
-                color: const Color(0xFFE91E63),
-              ),
-              const SizedBox(width: 12),
-              _buildBadgeCard(
-                icon: Icons.volunteer_activism,
-                label: 'VOLUNTEER',
-                color: const Color(0xFFE91E63),
-              ),
-            ],
+          // Use LayoutBuilder to make badges responsive
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Calculate badge width based on available space
+              final badgeWidth = (constraints.maxWidth - 24) / 3; // 3 badges with 12px spacing
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildBadgeCard(
+                    icon: Icons.star,
+                    label: 'LEADER',
+                    color: const Color(0xFFE91E63),
+                    width: badgeWidth,
+                  ),
+                  _buildBadgeCard(
+                    icon: Icons.person_add,
+                    label: 'NEW USER',
+                    color: const Color(0xFFE91E63),
+                    width: badgeWidth,
+                  ),
+                  _buildBadgeCard(
+                    icon: Icons.volunteer_activism,
+                    label: 'VOLUNTEER',
+                    color: const Color(0xFFE91E63),
+                    width: badgeWidth,
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -255,30 +264,36 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
     required IconData icon,
     required String label,
     required Color color,
+    required double width,
   }) {
-    return Expanded(
-      child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 32),
-            const SizedBox(height: 8),
-            Text(
+    return Container(
+      width: width,
+      height: 100,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white, size: 28),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
               label,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
