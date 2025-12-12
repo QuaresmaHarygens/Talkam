@@ -65,11 +65,16 @@ export default function NotificationsPage() {
     }
   }
 
-  const handleSwipe = (id: string, action: "read" | "delete") => {
+  const handleSwipe = async (id: string, action: "read" | "delete") => {
     if (action === "read") {
-      markNotificationRead(id)
-      mockAPI.notifications.markRead(id)
+      try {
+        await apiClient.markNotificationRead(id)
+        markNotificationRead(id)
+      } catch (err) {
+        console.error('Error marking notification as read:', err)
+      }
     } else {
+      // Delete is handled client-side for now
       setNotifications(notifications.filter((n) => n.id !== id))
     }
     setSwipedId(null)
@@ -194,7 +199,8 @@ export default function NotificationsPage() {
               </CardContent>
             </Card>
           )}
-        </div>
+          </div>
+        )}
       </main>
       <TabBar />
     </div>
