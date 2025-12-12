@@ -34,21 +34,40 @@ async def get_notifications(
     # Load report summaries for each notification
     responses = []
     for notification in notifications:
-        report = await session.get(Report, notification.report_id)
-        responses.append(
-            NotificationResponse(
-                id=str(notification.id),
-                report_id=str(notification.report_id),
-                title=notification.title,
-                message=notification.message,
-                read=notification.read,
-                action_taken=notification.action_taken,
-                created_at=notification.created_at.isoformat(),
-                report_summary=report.summary if report else None,
-                report_category=report.category if report else None,
-                report_severity=report.severity if report else None,
+        try:
+            report = await session.get(Report, notification.report_id)
+            responses.append(
+                NotificationResponse(
+                    id=str(notification.id),
+                    report_id=str(notification.report_id),
+                    title=notification.title,
+                    message=notification.message,
+                    read=notification.read,
+                    action_taken=notification.action_taken,
+                    created_at=notification.created_at.isoformat(),
+                    report_summary=report.summary if report else None,
+                    report_category=report.category if report else None,
+                    report_severity=report.severity if report else None,
+                )
             )
-        )
+        except Exception as e:
+            # If report doesn't exist or other error, still return notification without report details
+            import logging
+            logging.warning(f"Error loading report {notification.report_id} for notification {notification.id}: {e}")
+            responses.append(
+                NotificationResponse(
+                    id=str(notification.id),
+                    report_id=str(notification.report_id),
+                    title=notification.title,
+                    message=notification.message,
+                    read=notification.read,
+                    action_taken=notification.action_taken,
+                    created_at=notification.created_at.isoformat(),
+                    report_summary=None,
+                    report_category=None,
+                    report_severity=None,
+                )
+            )
     
     return responses
 

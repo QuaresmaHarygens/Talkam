@@ -253,6 +253,7 @@ async def search_reports(
 
     # Get total count (before pagination) - reuse same filters
     count_stmt = select(func.count(Report.id))
+    # Apply same filters as main query
     if county:
         count_stmt = count_stmt.join(Location).where(Location.county == county)
     if category:
