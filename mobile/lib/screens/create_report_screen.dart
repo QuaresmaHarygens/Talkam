@@ -80,9 +80,77 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
   Future<void> _getCurrentLocation() async {
     try {
-      final position = await Geolocator.getCurrentPosition();
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location services are disabled. Please enable them in Settings.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Check location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Location permissions are denied. Please enable location access in app settings.'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permissions are permanently denied. Please enable them in app settings.'),
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 12),
+                Text('Getting location...'),
+              ],
+            ),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // Get current position with desired accuracy
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
       setState(() => _currentPosition = position);
-      
+
       // Reverse geocode to get county
       try {
         final placemarks = await placemarkFromCoordinates(
@@ -92,19 +160,42 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         if (placemarks.isNotEmpty) {
           final placemark = placemarks.first;
           // Try to extract county from administrative area or locality
-          final county = placemark.administrativeArea ?? 
-                       placemark.locality ?? 
-                       'Unknown';
+          final county = placemark.administrativeArea ??
+              placemark.locality ??
+              'Unknown';
           setState(() => _county = county);
         }
       } catch (e) {
         // If reverse geocoding fails, default to Montserrado
         setState(() => _county = 'Montserrado');
       }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Location obtained: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } on TimeoutException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location request timed out. Please try again.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Location error: $e')),
+          SnackBar(
+            content: Text('Location error: ${e.toString()}'),
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     }
