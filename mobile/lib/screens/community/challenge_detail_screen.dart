@@ -550,3 +550,4 @@ class _ChallengeDetailScreenState extends ConsumerState<ChallengeDetailScreen> {
     }
   }
 }
+

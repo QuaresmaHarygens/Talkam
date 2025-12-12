@@ -103,3 +103,4 @@ async def get_challenges_count_in_radius(
         session, latitude, longitude, radius_km, category, status, limit=1000
     )
     return len(challenges)
+

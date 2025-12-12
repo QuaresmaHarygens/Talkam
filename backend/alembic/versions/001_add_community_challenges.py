@@ -121,3 +121,4 @@ def downgrade() -> None:
     op.drop_table('challenge_progress')
     op.drop_table('challenge_participations')
     op.drop_table('community_challenges')
+

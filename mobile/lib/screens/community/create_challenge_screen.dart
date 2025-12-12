@@ -614,3 +614,4 @@ class _CreateChallengeScreenState extends ConsumerState<CreateChallengeScreen> {
     );
   }
 }
+

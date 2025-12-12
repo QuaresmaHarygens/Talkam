@@ -145,3 +145,4 @@ class StakeholderSupport(Base):
     # Relationships
     stakeholder: Mapped["User"] = relationship("User", foreign_keys=[stakeholder_id])
     challenge: Mapped["CommunityChallenge"] = relationship(back_populates="stakeholder_supports")
+

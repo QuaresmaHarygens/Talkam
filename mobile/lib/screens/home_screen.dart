@@ -54,13 +54,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
-        backgroundColor: const Color(0xFF0F172A), // Deep Lagoon
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Home',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: TextButton(
+            child: ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -68,8 +75,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 );
               },
-              style: TextButton.styleFrom(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey.shade800,
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
               ),
               child: const Text('New Report'),
             ),
@@ -77,37 +89,70 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade200,
+              blurRadius: 4,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.black87,
+          unselectedItemColor: Colors.grey.shade600,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Community',
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 12,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Map',
-          ),
-          BottomNavigationBarItem(
-            icon: _unreadNotifications > 0
-                ? Badge(
-                    label: Text('$_unreadNotifications'),
-                    child: const Icon(Icons.notifications),
-                  )
-                : const Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(
+                _currentIndex == 0 ? Icons.home : Icons.home_outlined,
+              ),
+              label: 'Home',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.people),
+              label: 'Community',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.map),
+              label: 'Map',
+            ),
+            BottomNavigationBarItem(
+              icon: _unreadNotifications > 0
+                  ? Badge(
+                      label: Text(
+                        '$_unreadNotifications',
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                      child: const Icon(Icons.notifications_outlined),
+                    )
+                  : Icon(
+                      _currentIndex == 3
+                          ? Icons.notifications
+                          : Icons.notifications_outlined,
+                    ),
+              label: 'Notifications',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                _currentIndex == 4 ? Icons.settings : Icons.settings_outlined,
+              ),
+              label: 'Settings',
+            ),
+          ],
+        ),
       ),
     );
   }

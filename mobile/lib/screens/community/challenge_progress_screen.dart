@@ -194,3 +194,4 @@ class _ChallengeProgressScreenState extends ConsumerState<ChallengeProgressScree
     }
   }
 }
+

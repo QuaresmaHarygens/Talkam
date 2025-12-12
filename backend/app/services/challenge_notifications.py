@@ -184,3 +184,4 @@ async def notify_stakeholder_support(
         logger.error(f"Error creating stakeholder support notifications: {e}", exc_info=True)
         await session.rollback()
         return 0
+

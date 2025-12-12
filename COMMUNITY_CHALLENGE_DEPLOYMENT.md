@@ -283,3 +283,4 @@ The module creates notifications for:
 ---
 
 **The Community Challenge module is complete and ready to use!** 🚀
+

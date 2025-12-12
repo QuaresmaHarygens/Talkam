@@ -529,3 +529,4 @@ async def get_participants(
         )
         for p in participations
     ]
+
