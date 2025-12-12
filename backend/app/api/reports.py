@@ -297,28 +297,40 @@ async def search_reports(
 
     # Apply pagination
     offset = (page - 1) * page_size
-    result = await session.execute(
-        stmt.order_by(order_by).limit(page_size).offset(offset)
-    )
-    reports = result.scalars().unique().all()
-    summaries = [
-        ReportSummary(
-            id=r.id,
-            summary=r.summary,
-            category=r.category,
-            county=r.location.county if r.location else None,
-            severity=r.severity,
-            status=r.status,
+    try:
+        result = await session.execute(
+            stmt.order_by(order_by).limit(page_size).offset(offset)
         )
-        for r in reports
-    ]
-    return SearchResponse(
-        results=summaries,
-        total=total,
-        page=page,
-        page_size=page_size,
-        total_pages=(total + page_size - 1) // page_size if total > 0 else 0,
-    )
+        reports = result.scalars().unique().all()
+        summaries = [
+            ReportSummary(
+                id=r.id,
+                summary=r.summary,
+                category=r.category,
+                county=r.location.county if r.location else None,
+                severity=r.severity,
+                status=r.status,
+            )
+            for r in reports
+        ]
+        return SearchResponse(
+            results=summaries,
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=(total + page_size - 1) // page_size if total > 0 else 0,
+        )
+    except Exception as e:
+        import logging
+        logging.error(f"Error in search_reports: {e}", exc_info=True)
+        # Return empty results instead of crashing
+        return SearchResponse(
+            results=[],
+            total=0,
+            page=page,
+            page_size=page_size,
+            total_pages=0,
+        )
 
 
 @router.get("/{report_id}", response_model=ReportResponse)
