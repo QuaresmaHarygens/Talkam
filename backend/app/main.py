@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import admin, alerts, attestations, auth, dashboards, device_tokens, health, media, ngos, notifications, reports, sms
+from .api import admin, alerts, attestations, auth, challenges, dashboards, device_tokens, health, media, ngos, notifications, reports, sms
 from .config import get_settings
 from .middleware import RateLimitMiddleware, SecurityHeadersMiddleware
 from .sentry_config import init_sentry
@@ -113,6 +113,7 @@ app.include_router(dashboards.router, prefix=settings.api_v1_prefix)
 app.include_router(attestations.router, prefix=settings.api_v1_prefix)
 app.include_router(notifications.router, prefix=settings.api_v1_prefix)
 app.include_router(device_tokens.router, prefix=settings.api_v1_prefix)
+app.include_router(challenges.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")

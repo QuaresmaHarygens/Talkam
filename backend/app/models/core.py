@@ -33,6 +33,10 @@ class User(Base):
     notifications: Mapped[list["Notification"]] = relationship(back_populates="user")
     attestations: Mapped[list["Attestation"]] = relationship(back_populates="user")
     device_tokens: Mapped[list["DeviceToken"]] = relationship(back_populates="user")
+    created_challenges: Mapped[list["CommunityChallenge"]] = relationship("CommunityChallenge", foreign_keys="CommunityChallenge.creator_id", back_populates="creator")
+    challenge_participations: Mapped[list["ChallengeParticipation"]] = relationship("ChallengeParticipation", foreign_keys="ChallengeParticipation.user_id", back_populates="user")
+    challenge_progress: Mapped[list["ChallengeProgress"]] = relationship("ChallengeProgress", foreign_keys="ChallengeProgress.user_id", back_populates="user")
+    stakeholder_supports: Mapped[list["StakeholderSupport"]] = relationship("StakeholderSupport", foreign_keys="StakeholderSupport.stakeholder_id", back_populates="stakeholder")
 
 
 class AnonymousToken(Base):

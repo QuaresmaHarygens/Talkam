@@ -5,6 +5,7 @@ import 'reports_feed_screen.dart';
 import 'map_screen.dart';
 import 'settings_screen.dart';
 import 'notifications_screen.dart';
+import 'community/community_hub_screen.dart';
 import '../providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   final List<Widget> _screens = [
     const ReportsFeedScreen(),
+    const CommunityHubScreen(),
     const MapScreen(),
     const NotificationsScreen(),
     const SettingsScreen(),
@@ -83,6 +85,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: 'Community',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.map),

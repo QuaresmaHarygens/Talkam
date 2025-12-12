@@ -22,8 +22,11 @@ class Notification(Base):
 
     id: Mapped[uuid4] = mapped_column(UUID(as_uuid=True), primary_key=True, default=default_uuid)
     user_id: Mapped[Optional[uuid4]] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    report_id: Mapped[uuid4] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("reports.id", ondelete="CASCADE")
+    report_id: Mapped[Optional[uuid4]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("reports.id", ondelete="CASCADE"), nullable=True
+    )
+    challenge_id: Mapped[Optional[uuid4]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("community_challenges.id", ondelete="CASCADE"), nullable=True
     )
     notification_type: Mapped[str] = mapped_column(String(32), default="attestation_request")
     title: Mapped[str] = mapped_column(String(255))
@@ -35,7 +38,7 @@ class Notification(Base):
 
     # Relationships
     user: Mapped[Optional["User"]] = relationship(back_populates="notifications")
-    report: Mapped["Report"] = relationship(back_populates="notifications")
+    report: Mapped[Optional["Report"]] = relationship(back_populates="notifications")
 
 
 class Attestation(Base):

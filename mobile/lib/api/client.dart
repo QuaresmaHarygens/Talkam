@@ -286,6 +286,120 @@ class TalkamApiClient {
   }
 
   // Attestation endpoints
+  // Community Challenge endpoints
+  Future<Map<String, dynamic>> createChallenge({
+    required String title,
+    required String description,
+    required String category,
+    required double latitude,
+    required double longitude,
+    String? county,
+    String? district,
+    Map<String, dynamic>? neededResources,
+    String urgencyLevel = 'medium',
+    int? durationDays,
+    String? expectedImpact,
+    List<String>? mediaUrls,
+  }) async {
+    final response = await _dio.post('/challenges/create', data: {
+      'title': title,
+      'description': description,
+      'category': category,
+      'latitude': latitude,
+      'longitude': longitude,
+      if (county != null) 'county': county,
+      if (district != null) 'district': district,
+      if (neededResources != null) 'needed_resources': neededResources,
+      'urgency_level': urgencyLevel,
+      if (durationDays != null) 'duration_days': durationDays,
+      if (expectedImpact != null) 'expected_impact': expectedImpact,
+      if (mediaUrls != null) 'media_urls': mediaUrls,
+    });
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> listChallenges({
+    required double latitude,
+    required double longitude,
+    double radiusKm = 5.0,
+    String? category,
+    String status = 'active',
+    int? page,
+    int? pageSize,
+  }) async {
+    final response = await _dio.get('/challenges/list', queryParameters: {
+      'latitude': latitude,
+      'longitude': longitude,
+      'radius_km': radiusKm,
+      if (category != null) 'category': category,
+      'status': status,
+      if (page != null) 'page': page,
+      if (pageSize != null) 'page_size': pageSize,
+    });
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> getChallenge(String challengeId) async {
+    final response = await _dio.get('/challenges/$challengeId');
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> joinChallenge({
+    required String challengeId,
+    required String role, // participant, volunteer, donor
+    Map<String, dynamic>? contributionDetails,
+  }) async {
+    final response = await _dio.post('/challenges/$challengeId/join', data: {
+      'role': role,
+      if (contributionDetails != null) 'contribution_details': contributionDetails,
+    });
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> updateChallengeProgress({
+    required String challengeId,
+    required String description,
+    required double progressPercentage,
+    List<String>? mediaUrls,
+    String? milestone,
+  }) async {
+    final response = await _dio.post('/challenges/$challengeId/progress', data: {
+      'description': description,
+      'progress_percentage': progressPercentage,
+      if (mediaUrls != null) 'media_urls': mediaUrls,
+      if (milestone != null) 'milestone': milestone,
+    });
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> provideStakeholderSupport({
+    required String challengeId,
+    required String supportType, // endorsement, donation, manpower, expertise, materials
+    Map<String, dynamic>? details,
+    bool isHighPriority = false,
+  }) async {
+    final response = await _dio.post('/challenges/$challengeId/support', data: {
+      'support_type': supportType,
+      if (details != null) 'details': details,
+      'is_high_priority': isHighPriority,
+    });
+    return response.data;
+  }
+
+  Future<List<Map<String, dynamic>>> getChallengeProgress(String challengeId, {int? limit}) async {
+    final response = await _dio.get('/challenges/$challengeId/progress', queryParameters: {
+      if (limit != null) 'limit': limit,
+    });
+    return (response.data as List).map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getChallengeParticipants(String challengeId, {String? role}) async {
+    final response = await _dio.get('/challenges/$challengeId/participants', queryParameters: {
+      if (role != null) 'role': role,
+    });
+    return (response.data as List).map((e) => e as Map<String, dynamic>).toList();
+  }
+
   Future<Map<String, dynamic>> attestToReport({
     required String reportId,
     required String action, // 'confirm', 'deny', 'needs_info'

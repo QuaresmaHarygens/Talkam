@@ -28,6 +28,9 @@ async def get_notifications(
     
     stmt = stmt.order_by(Notification.created_at.desc()).limit(limit)
     
+    # Note: For challenge notifications, report_id will be None
+    # The notification_type will indicate if it's a challenge notification
+    
     result = await session.execute(stmt)
     notifications = result.scalars().all()
     
