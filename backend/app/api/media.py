@@ -20,12 +20,29 @@ async def request_upload(
     user=Depends(get_current_user),
 ) -> dict:
     """Generate presigned S3 URL for direct client upload."""
-    storage = S3Storage(settings)
-    content_type_map = {"photo": "image/jpeg", "video": "video/mp4", "audio": "audio/mpeg"}
-    content_type = content_type_map.get(body.type, "application/octet-stream")
-    key = body.key or f"media/{user.id}/{uuid4()}.{body.type}"
-    url_data = await storage.generate_presigned_url(key, content_type)
-    return {
-        **url_data,
-        "expires_at": (datetime.utcnow() + timedelta(seconds=url_data["expires_in"])).isoformat() + "Z",
-    }
+    try:
+        # Check if S3 is configured
+        if not settings.s3_endpoint or not settings.s3_access_key or not settings.s3_secret_key:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Media storage is not configured. Please contact support.",
+            )
+        
+        storage = S3Storage(settings)
+        content_type_map = {"photo": "image/jpeg", "video": "video/mp4", "audio": "audio/mpeg"}
+        content_type = content_type_map.get(body.type, "application/octet-stream")
+        key = body.key or f"media/{user.id}/{uuid4()}.{body.type}"
+        url_data = await storage.generate_presigned_url(key, content_type)
+        return {
+            **url_data,
+            "expires_at": (datetime.utcnow() + timedelta(seconds=url_data["expires_in"])).isoformat() + "Z",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Error generating upload URL: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate upload URL: {str(e)}",
+        )
