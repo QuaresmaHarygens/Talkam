@@ -190,7 +190,7 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
               child: _buildChallengesList(),
             ),
             
-            // Our Badges Section
+            // Our Badges Section (at bottom, above FAB)
             _buildBadgesSection(),
           ],
         ),
@@ -206,12 +206,18 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
         backgroundColor: const Color(0xFFE91E63), // Hot pink
         child: const Icon(Icons.add, color: Colors.white),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
   Widget _buildBadgesSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 80, // Extra padding on right to account for FAB
+        top: 12,
+        bottom: 12,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -222,54 +228,54 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'OUR BADGES',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'OUR BADGES',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
             ),
-            const SizedBox(height: 12),
-            // Use LayoutBuilder to make badges responsive
-            LayoutBuilder(
-              builder: (context, constraints) {
-                // Calculate badge width based on available space
-                final badgeWidth = (constraints.maxWidth - 24) / 3; // 3 badges with 12px spacing
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildBadgeCard(
-                      icon: Icons.star,
-                      label: 'LEADER',
-                      color: const Color(0xFFE91E63),
-                      width: badgeWidth,
-                    ),
-                    _buildBadgeCard(
-                      icon: Icons.person_add,
-                      label: 'NEW USER',
-                      color: const Color(0xFFE91E63),
-                      width: badgeWidth,
-                    ),
-                    _buildBadgeCard(
-                      icon: Icons.volunteer_activism,
-                      label: 'VOLUNTEER',
-                      color: const Color(0xFFE91E63),
-                      width: badgeWidth,
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          // Responsive badge row that adapts to screen width
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth = constraints.maxWidth;
+              final spacing = 12.0;
+              final totalSpacing = spacing * 2; // 2 gaps between 3 badges
+              final badgeWidth = ((availableWidth - totalSpacing) / 3).clamp(85.0, 110.0);
+              
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildBadgeCard(
+                    icon: Icons.star,
+                    label: 'LEADER',
+                    color: const Color(0xFFE91E63),
+                    width: badgeWidth,
+                  ),
+                  _buildBadgeCard(
+                    icon: Icons.person_add,
+                    label: 'NEW USER',
+                    color: const Color(0xFFE91E63),
+                    width: badgeWidth,
+                  ),
+                  _buildBadgeCard(
+                    icon: Icons.volunteer_activism,
+                    label: 'VOLUNTEER',
+                    color: const Color(0xFFE91E63),
+                    width: badgeWidth,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -282,7 +288,7 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
   }) {
     return Container(
       width: width,
-      height: 100,
+      height: 90,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
@@ -290,7 +296,7 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.white, size: 28),
+          Icon(icon, color: Colors.white, size: 26),
           const SizedBox(height: 6),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
