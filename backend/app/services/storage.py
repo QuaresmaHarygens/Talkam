@@ -34,25 +34,31 @@ class S3Storage:
         self, key: str, content_type: str, expires_in: int = 900
     ) -> dict[str, Any]:
         """Generate presigned POST URL for direct client upload."""
-        async with self.session.client(
-            "s3",
-            endpoint_url=self.settings.s3_endpoint,
-            aws_access_key_id=self.settings.s3_access_key,
-            aws_secret_access_key=self.settings.s3_secret_key,
-            config=self.config,
-        ) as s3:
-            conditions = [{"Content-Type": content_type}, ["content-length-range", 1, 50 * 1024 * 1024]]
-            fields = {"Content-Type": content_type}
-            url_data = await s3.generate_presigned_post(
-                Bucket=self.settings.bucket_reports,
-                Key=key,
-                Fields=fields,
-                Conditions=conditions,
-                ExpiresIn=expires_in,
-            )
-            return {
-                "upload_url": url_data["url"],
-                "fields": url_data["fields"],
-                "expires_in": expires_in,
-                "media_key": key,
-            }
+        try:
+            async with self.session.client(
+                "s3",
+                endpoint_url=self.settings.s3_endpoint,
+                aws_access_key_id=self.settings.s3_access_key,
+                aws_secret_access_key=self.settings.s3_secret_key,
+                config=self.config,
+            ) as s3:
+                conditions = [{"Content-Type": content_type}, ["content-length-range", 1, 50 * 1024 * 1024]]
+                fields = {"Content-Type": content_type}
+                url_data = await s3.generate_presigned_post(
+                    Bucket=self.settings.bucket_reports,
+                    Key=key,
+                    Fields=fields,
+                    Conditions=conditions,
+                    ExpiresIn=expires_in,
+                )
+                return {
+                    "upload_url": url_data["url"],
+                    "fields": url_data["fields"],
+                    "expires_in": expires_in,
+                    "media_key": key,
+                }
+        except Exception as e:
+            import logging
+            logging.error(f"S3 presigned URL generation failed: {e}", exc_info=True)
+            # Re-raise with more context
+            raise Exception(f"Failed to generate S3 presigned URL: {str(e)}") from e

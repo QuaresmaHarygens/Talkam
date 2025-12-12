@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -641,12 +642,24 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               maxLines: 6,
             ),
             const SizedBox(height: 16),
+            // Get Location Button - styled to match mockup
             ElevatedButton.icon(
               onPressed: _getCurrentLocation,
               icon: const Icon(Icons.location_on),
-              label: Text(_currentPosition == null
-                  ? 'Get Location'
-                  : 'Location: ${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}'),
+              label: Text(
+                _currentPosition == null
+                    ? 'Get Location'
+                    : 'Location: ${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink.shade50,
+                foregroundColor: Colors.pink.shade700,
+                side: BorderSide(color: Colors.pink.shade300, width: 1),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             // Anonymous checkbox matching wireframe

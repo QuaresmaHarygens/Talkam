@@ -252,35 +252,46 @@ async def search_reports(
             )
 
     # Get total count (before pagination) - reuse same filters
-    count_stmt = select(func.count(Report.id))
-    # Apply same filters as main query
-    if county:
-        count_stmt = count_stmt.join(Location).where(Location.county == county)
-    if category:
-        count_stmt = count_stmt.where(Report.category == category)
-    if severity:
-        count_stmt = count_stmt.where(Report.severity == severity)
-    if status_filter:
-        count_stmt = count_stmt.where(Report.status == status_filter)
-    if assigned_agency:
-        count_stmt = count_stmt.where(Report.recommended_agency.ilike(f"%{assigned_agency}%"))
-    if min_priority is not None:
-        count_stmt = count_stmt.where(Report.priority_score >= min_priority)
-    if text:
-        count_stmt = count_stmt.where(
-            (Report.summary.ilike(f"%{text}%")) | (Report.details.ilike(f"%{text}%"))
-        )
-    if date_from:
-        from datetime import datetime
-        date_from_dt = datetime.fromisoformat(date_from.replace("Z", "+00:00"))
-        count_stmt = count_stmt.where(Report.created_at >= date_from_dt)
-    if date_to:
-        from datetime import datetime
-        date_to_dt = datetime.fromisoformat(date_to.replace("Z", "+00:00"))
-        count_stmt = count_stmt.where(Report.created_at <= date_to_dt)
-    
-    total_result = await session.execute(count_stmt)
-    total = total_result.scalar() or 0
+    try:
+        count_stmt = select(func.count(Report.id))
+        # Apply same filters as main query
+        if county:
+            count_stmt = count_stmt.join(Location).where(Location.county == county)
+        if category:
+            count_stmt = count_stmt.where(Report.category == category)
+        if severity:
+            count_stmt = count_stmt.where(Report.severity == severity)
+        if status_filter:
+            count_stmt = count_stmt.where(Report.status == status_filter)
+        if assigned_agency:
+            count_stmt = count_stmt.where(Report.recommended_agency.ilike(f"%{assigned_agency}%"))
+        if min_priority is not None:
+            count_stmt = count_stmt.where(Report.priority_score >= min_priority)
+        if text:
+            count_stmt = count_stmt.where(
+                (Report.summary.ilike(f"%{text}%")) | (Report.details.ilike(f"%{text}%"))
+            )
+        if date_from:
+            from datetime import datetime
+            try:
+                date_from_dt = datetime.fromisoformat(date_from.replace("Z", "+00:00"))
+                count_stmt = count_stmt.where(Report.created_at >= date_from_dt)
+            except ValueError:
+                pass  # Skip invalid date
+        if date_to:
+            from datetime import datetime
+            try:
+                date_to_dt = datetime.fromisoformat(date_to.replace("Z", "+00:00"))
+                count_stmt = count_stmt.where(Report.created_at <= date_to_dt)
+            except ValueError:
+                pass  # Skip invalid date
+        
+        total_result = await session.execute(count_stmt)
+        total = total_result.scalar() or 0
+    except Exception as e:
+        import logging
+        logging.error(f"Error counting reports: {e}", exc_info=True)
+        total = 0
 
     # Apply sorting
     sort_column = {
@@ -298,21 +309,33 @@ async def search_reports(
     # Apply pagination
     offset = (page - 1) * page_size
     try:
+        # Ensure we have a valid query before executing
+        if not stmt.is_select:
+            raise ValueError("Invalid query statement")
+        
         result = await session.execute(
             stmt.order_by(order_by).limit(page_size).offset(offset)
         )
         reports = result.scalars().unique().all()
-        summaries = [
-            ReportSummary(
-                id=r.id,
-                summary=r.summary,
-                category=r.category,
-                county=r.location.county if r.location else None,
-                severity=r.severity,
-                status=r.status,
-            )
-            for r in reports
-        ]
+        
+        summaries = []
+        for r in reports:
+            try:
+                summaries.append(
+                    ReportSummary(
+                        id=r.id,
+                        summary=r.summary or "",
+                        category=r.category or "unknown",
+                        county=r.location.county if r.location else None,
+                        severity=r.severity or "medium",
+                        status=r.status or "submitted",
+                    )
+                )
+            except Exception as e:
+                import logging
+                logging.warning(f"Error processing report {r.id}: {e}")
+                continue  # Skip problematic reports
+        
         return SearchResponse(
             results=summaries,
             total=total,
