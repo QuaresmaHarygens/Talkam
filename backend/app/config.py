@@ -20,13 +20,16 @@ class Settings(BaseSettings):
     @property
     def effective_postgres_dsn(self) -> str:
         """Get PostgreSQL DSN, supporting both DATABASE_URL and POSTGRES_DSN."""
-        # Railway/Heroku provide DATABASE_URL
+        # Railway/Heroku/Koyeb provide DATABASE_URL
         database_url = self.database_url or os.getenv("DATABASE_URL", "")
         
         if database_url:
+            # Convert postgres:// (old format) to postgresql+asyncpg://
+            if database_url.startswith("postgres://"):
+                database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
             # Convert postgresql:// to postgresql+asyncpg:// if needed
-            if database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
-                return database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            elif database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
+                database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
             return database_url
         
         # Fall back to POSTGRES_DSN
