@@ -6,7 +6,7 @@ import { Navbar } from "@/components/navbar"
 import { TabBar } from "@/components/tab-bar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { mockAPI } from "@/lib/mock/api"
+import { apiClient } from "@/lib/api/client"
 import { Users, TrendingUp, Heart, MapPin } from "lucide-react"
 import type { Challenge } from "@/lib/mock/api"
 
