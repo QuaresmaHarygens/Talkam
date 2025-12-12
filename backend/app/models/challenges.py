@@ -93,6 +93,7 @@ class CommunityChallenge(Base):
     participations: Mapped[list["ChallengeParticipation"]] = relationship(back_populates="challenge", cascade="all, delete-orphan")
     progress_updates: Mapped[list["ChallengeProgress"]] = relationship(back_populates="challenge", cascade="all, delete-orphan")
     stakeholder_supports: Mapped[list["StakeholderSupport"]] = relationship(back_populates="challenge", cascade="all, delete-orphan")
+    notifications: Mapped[list["Notification"]] = relationship("Notification", foreign_keys="Notification.challenge_id", back_populates="challenge")
 
 
 class ChallengeParticipation(Base):

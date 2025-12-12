@@ -39,6 +39,7 @@ class Notification(Base):
     # Relationships
     user: Mapped[Optional["User"]] = relationship(back_populates="notifications")
     report: Mapped[Optional["Report"]] = relationship(back_populates="notifications")
+    challenge: Mapped[Optional["CommunityChallenge"]] = relationship("CommunityChallenge", foreign_keys=[challenge_id], back_populates="notifications")
 
 
 class Attestation(Base):

@@ -38,7 +38,8 @@ async def notify_challenge_created(
             # For now, create notification for all verified users
             notification = Notification(
                 user_id=user.id,
-                report_id=None,  # Challenges don't have report_id, but Notification model requires it
+                report_id=None,  # Challenge notifications don't have report_id
+                challenge_id=challenge.id,
                 notification_type="challenge_created",
                 title=f"New Challenge: {challenge.title}",
                 message=f"A new {challenge.category} challenge has been created in {challenge.county or 'your area'}. Join now!",
@@ -82,7 +83,8 @@ async def notify_challenge_progress(
         for user_id in participant_user_ids:
             notification = Notification(
                 user_id=user_id,
-                report_id=None,  # Challenges don't have report_id
+                report_id=None,
+                challenge_id=challenge.id,
                 notification_type="challenge_progress",
                 title=f"Progress Update: {challenge.title}",
                 message=f"{progress.description[:100]}... Progress: {progress.progress_percentage}%",
@@ -165,6 +167,7 @@ async def notify_stakeholder_support(
             notification = Notification(
                 user_id=user_id,
                 report_id=None,
+                challenge_id=challenge.id,
                 notification_type="stakeholder_support",
                 title=f"Support Received: {challenge.title}",
                 message=f"{stakeholder_name} has provided {support_type} support to this challenge!",

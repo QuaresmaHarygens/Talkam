@@ -38,29 +38,65 @@ async def get_notifications(
     responses = []
     for notification in notifications:
         try:
-            report = await session.get(Report, notification.report_id)
-            responses.append(
-                NotificationResponse(
-                    id=str(notification.id),
-                    report_id=str(notification.report_id),
-                    title=notification.title,
-                    message=notification.message,
-                    read=notification.read,
-                    action_taken=notification.action_taken,
-                    created_at=notification.created_at.isoformat(),
-                    report_summary=report.summary if report else None,
-                    report_category=report.category if report else None,
-                    report_severity=report.severity if report else None,
+            # Handle challenge notifications (no report_id)
+            if notification.challenge_id and not notification.report_id:
+                responses.append(
+                    NotificationResponse(
+                        id=str(notification.id),
+                        report_id=None,  # Challenge notifications don't have report_id
+                        title=notification.title,
+                        message=notification.message,
+                        read=notification.read,
+                        action_taken=notification.action_taken,
+                        created_at=notification.created_at.isoformat(),
+                        report_summary=None,
+                        report_category=None,
+                        report_severity=None,
+                    )
                 )
-            )
+                continue
+            
+            # Handle report notifications
+            if notification.report_id:
+                report = await session.get(Report, notification.report_id)
+                responses.append(
+                    NotificationResponse(
+                        id=str(notification.id),
+                        report_id=str(notification.report_id),
+                        title=notification.title,
+                        message=notification.message,
+                        read=notification.read,
+                        action_taken=notification.action_taken,
+                        created_at=notification.created_at.isoformat(),
+                        report_summary=report.summary if report else None,
+                        report_category=report.category if report else None,
+                        report_severity=report.severity if report else None,
+                    )
+                )
+            else:
+                # Notification with neither report_id nor challenge_id
+                responses.append(
+                    NotificationResponse(
+                        id=str(notification.id),
+                        report_id=None,
+                        title=notification.title,
+                        message=notification.message,
+                        read=notification.read,
+                        action_taken=notification.action_taken,
+                        created_at=notification.created_at.isoformat(),
+                        report_summary=None,
+                        report_category=None,
+                        report_severity=None,
+                    )
+                )
         except Exception as e:
             # If report doesn't exist or other error, still return notification without report details
             import logging
-            logging.warning(f"Error loading report {notification.report_id} for notification {notification.id}: {e}")
+            logging.warning(f"Error loading notification {notification.id}: {e}")
             responses.append(
                 NotificationResponse(
                     id=str(notification.id),
-                    report_id=str(notification.report_id),
+                    report_id=str(notification.report_id) if notification.report_id else None,
                     title=notification.title,
                     message=notification.message,
                     read=notification.read,
