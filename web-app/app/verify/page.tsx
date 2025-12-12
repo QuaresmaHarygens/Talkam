@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/modal"
 import { useStore } from "@/lib/store"
-import { mockAPI } from "@/lib/mock/api"
+import { apiClient } from "@/lib/api/client"
 import { CheckCircle, XCircle, MessageSquare, Filter } from "lucide-react"
 import type { Report } from "@/lib/mock/api"
 
@@ -18,9 +18,44 @@ export default function VerifyPage() {
   const [filter, setFilter] = useState<"all" | "submitted" | "under-review">("all")
   const [comments, setComments] = useState<{ id: string; text: string; author: string; createdAt: string }[]>([])
 
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
-    mockAPI.verify.list().then(setReports)
-  }, [setReports])
+    const loadReports = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await apiClient.searchReports({
+          page_size: 50,
+          ...(filter !== "all" ? { status: filter } : {}),
+        })
+        const transformedReports = response.results.map((r: any) => ({
+          id: r.id,
+          summary: r.summary || '',
+          category: r.category || 'unknown',
+          severity: r.severity || 'medium',
+          status: r.status || 'submitted',
+          location: {
+            latitude: r.location?.latitude || 0,
+            longitude: r.location?.longitude || 0,
+            county: r.county || r.location?.county || 'Unknown',
+            district: r.district || r.location?.district,
+          },
+          createdAt: r.created_at || new Date().toISOString(),
+          verificationScore: r.verification_score,
+          witnessCount: r.witness_count,
+        }))
+        setReports(transformedReports)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load reports')
+        console.error('Error loading reports:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadReports()
+  }, [setReports, filter])
 
   const filteredReports = reports.filter((r) => {
     if (filter === "all") return true
@@ -28,9 +63,35 @@ export default function VerifyPage() {
   })
 
   const handleVerify = async (reportId: string, verified: boolean) => {
-    await mockAPI.verify.verify(reportId, verified)
-    mockAPI.verify.list().then(setReports)
-    setSelectedReport(null)
+    try {
+      await apiClient.verifyReport(reportId, {
+        verified,
+        comments: verified ? 'Verified by community member' : 'Rejected',
+      })
+      // Reload reports
+      const response = await apiClient.searchReports({ page_size: 50 })
+      const transformedReports = response.results.map((r: any) => ({
+        id: r.id,
+        summary: r.summary || '',
+        category: r.category || 'unknown',
+        severity: r.severity || 'medium',
+        status: r.status || 'submitted',
+        location: {
+          latitude: r.location?.latitude || 0,
+          longitude: r.location?.longitude || 0,
+          county: r.county || r.location?.county || 'Unknown',
+          district: r.district || r.location?.district,
+        },
+        createdAt: r.created_at || new Date().toISOString(),
+        verificationScore: r.verification_score,
+        witnessCount: r.witness_count,
+      }))
+      setReports(transformedReports)
+      setSelectedReport(null)
+    } catch (err) {
+      console.error('Error verifying report:', err)
+      alert(err instanceof Error ? err.message : 'Failed to verify report')
+    }
   }
 
   return (
@@ -68,9 +129,27 @@ export default function VerifyPage() {
           ))}
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-destructive">{error}</p>
+              <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Reports List */}
-        <div className="space-y-3">
-          {filteredReports.length > 0 ? (
+        {!loading && !error && (
+          <div className="space-y-3">
+            {filteredReports.length > 0 ? (
             filteredReports.map((report) => (
               <Card
                 key={report.id}
@@ -116,7 +195,8 @@ export default function VerifyPage() {
               </CardContent>
             </Card>
           )}
-        </div>
+          </div>
+        )}
       </main>
       <TabBar />
 

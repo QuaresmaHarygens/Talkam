@@ -59,23 +59,51 @@ export default function ReportPage() {
 
     setIsSubmitting(true)
     try {
-      const report = await mockAPI.reports.create({
+      // Upload media first if any
+      const mediaKeys: string[] = []
+      for (const mediaUrl of media) {
+        try {
+          // For now, we'll skip media upload - can be enhanced later
+          // const uploadData = await apiClient.requestUploadUrl({ type: 'photo' })
+          // ... upload logic
+        } catch (err) {
+          console.error('Media upload failed:', err)
+        }
+      }
+
+      const report = await apiClient.createReport({
         summary,
+        details: details || summary,
         category: selectedCategory,
-        severity: selectedSeverity as any,
-        status: "submitted",
-        location: {
-          latitude: location.lat,
-          longitude: location.lng,
-          county: "Montserrado",
-          district: location.address,
-        },
-        media,
+        severity: selectedSeverity,
+        latitude: location.lat,
+        longitude: location.lng,
+        county: "Montserrado", // Can be extracted from location.address
+        district: location.address,
+        media_keys: mediaKeys.length > 0 ? mediaKeys : undefined,
       })
-      addReport(report)
+
+      // Transform to frontend format and add to store
+      const transformedReport = {
+        id: report.id || String(Date.now()),
+        summary: report.summary || summary,
+        category: report.category || selectedCategory,
+        severity: report.severity || selectedSeverity,
+        status: report.status || "submitted",
+        location: {
+          latitude: report.location?.latitude || location.lat,
+          longitude: report.location?.longitude || location.lng,
+          county: report.county || "Montserrado",
+          district: report.district || location.address,
+        },
+        createdAt: report.created_at || new Date().toISOString(),
+        media,
+      }
+      addReport(transformedReport)
       router.push("/dashboard")
     } catch (error) {
       console.error("Failed to submit report:", error)
+      alert(error instanceof Error ? error.message : "Failed to submit report. Please try again.")
     } finally {
       setIsSubmitting(false)
     }

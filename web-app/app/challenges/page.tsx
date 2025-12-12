@@ -7,17 +7,73 @@ import { TabBar } from "@/components/tab-bar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStore } from "@/lib/store"
-import { mockAPI } from "@/lib/mock/api"
+import { apiClient } from "@/lib/api/client"
 import { Plus, Users, TrendingUp, ArrowRight } from "lucide-react"
 import type { Challenge } from "@/lib/mock/api"
 
 export default function ChallengesPage() {
   const { challenges, setChallenges } = useStore()
   const [filter, setFilter] = useState<"active" | "completed">("active")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    mockAPI.challenges.list().then(setChallenges)
-  }, [setChallenges])
+    const loadChallenges = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Get user's location (default to Monrovia if not available)
+        let lat = 6.4281
+        let lng = -10.7619
+        
+        if (navigator.geolocation) {
+          try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+            })
+            lat = position.coords.latitude
+            lng = position.coords.longitude
+          } catch (err) {
+            // Use default location
+          }
+        }
+
+        const response = await apiClient.listChallenges({
+          lat,
+          lng,
+          radius_km: 10,
+          status: filter,
+        })
+        
+        const transformedChallenges = (response.challenges || []).map((c: any) => ({
+          id: c.id,
+          title: c.title || '',
+          description: c.description || '',
+          category: c.category || 'social',
+          status: c.status || 'active',
+          progress: c.progress_percentage || 0,
+          participants: c.participant_count || 0,
+          volunteers: c.volunteer_count || 0,
+          donors: c.donor_count || 0,
+          location: {
+            latitude: c.latitude || lat,
+            longitude: c.longitude || lng,
+            county: c.county || 'Unknown',
+          },
+          createdAt: c.created_at || new Date().toISOString(),
+          expiresAt: c.expires_at,
+        }))
+        setChallenges(transformedChallenges)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load challenges')
+        console.error('Error loading challenges:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadChallenges()
+  }, [setChallenges, filter])
 
   const filteredChallenges = challenges.filter((c) => {
     if (filter === "active") return c.status === "active"
@@ -60,9 +116,27 @@ export default function ChallengesPage() {
           ))}
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-destructive">{error}</p>
+              <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Challenges List */}
-        <div className="space-y-4">
-          {filteredChallenges.length > 0 ? (
+        {!loading && !error && (
+          <div className="space-y-4">
+            {filteredChallenges.length > 0 ? (
             filteredChallenges.map((challenge) => (
               <Link key={challenge.id} href={`/challenges/${challenge.id}`}>
                 <Card className="hover:shadow-md transition-shadow cursor-pointer">
