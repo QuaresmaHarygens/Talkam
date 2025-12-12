@@ -29,8 +29,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     _loadReports();
   }
 
-  String? _errorMessage;
-
   Future<void> _loadReports() async {
     try {
       setState(() {
