@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'screens/home_screen.dart';
-import 'screens/auth/login_screen.dart';
 import 'screens/onboarding/welcome_screen.dart';
 import 'services/offline_storage.dart';
-import 'services/sync_service.dart';
-import 'providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

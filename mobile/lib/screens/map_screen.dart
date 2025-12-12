@@ -4,6 +4,8 @@ import 'package:latlong2/latlong.dart' as latlng;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers.dart';
 import '../models/report.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_card.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -45,9 +47,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Map View'),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Map View',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.foreground,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.foreground,
+        elevation: 0,
         actions: [
           IconButton(
             icon: Icon(_showHeatmap ? Icons.map : Icons.layers),
@@ -214,25 +224,57 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   void _showReportDetails(Report report) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: Colors.transparent,
+      builder: (context) => AppCard(
+        margin: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               report.summary,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: AppTheme.heading3,
             ),
-            const SizedBox(height: 8),
-            Text('Category: ${report.category}'),
-            Text('Severity: ${report.severity}'),
-            Text('Status: ${report.status}'),
-            Text('County: ${report.location.county}'),
+            const SizedBox(height: AppTheme.spacing16),
+            _buildDetailRow('Category', report.category),
+            _buildDetailRow('Severity', report.severity),
+            _buildDetailRow('Status', report.status),
+            if (report.location.county != null && report.location.county!.isNotEmpty)
+              _buildDetailRow('County', report.location.county!),
             if (report.verificationScore != null)
-              Text('Verification: ${(report.verificationScore! * 100).toStringAsFixed(0)}%'),
+              _buildDetailRow(
+                'Verification',
+                '${(report.verificationScore! * 100).toStringAsFixed(0)}%',
+              ),
+            const SizedBox(height: AppTheme.spacing8),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spacing8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: AppTheme.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTheme.bodySmall,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -5,13 +5,10 @@ import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_button.dart';
 import 'create_report_screen.dart';
-import 'reports_feed_screen.dart';
 import 'map_screen.dart';
-import 'notifications_screen.dart';
 import 'community/community_hub_screen.dart';
 import 'reports/report_detail_screen.dart';
 import '../models/report.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 /// Enhanced Dashboard matching web frontend design
 class DashboardScreen extends ConsumerStatefulWidget {

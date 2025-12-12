@@ -4,6 +4,8 @@ import 'package:permission_handler/permission_handler.dart';
 import '../services/offline_storage.dart';
 import '../services/sync_service.dart';
 import '../providers.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_card.dart';
 import 'auth/login_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -89,35 +91,92 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Widget _buildSettingCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color? iconColor,
+  }) {
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: AppTheme.spacing16),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: (iconColor ?? AppTheme.primary).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppTheme.radius),
+            ),
+            child: Icon(
+              icon,
+              color: iconColor ?? AppTheme.primary,
+            ),
+          ),
+          const SizedBox(width: AppTheme.spacing16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTheme.heading3,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: AppTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: AppTheme.mutedForeground,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Settings',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.foreground,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.foreground,
+        elevation: 0,
       ),
       body: ListView(
+        padding: const EdgeInsets.all(AppTheme.spacing16),
         children: [
-          ListTile(
-            leading: const Icon(Icons.cloud_upload),
-            title: const Text('Sync Now'),
-            subtitle: Text('$_offlineQueueSize reports queued'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          // Sync & Offline
+          _buildSettingCard(
+            icon: Icons.cloud_upload,
+            title: 'Sync Now',
+            subtitle: '$_offlineQueueSize reports queued',
             onTap: _syncNow,
           ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline),
-            title: const Text('Clear Offline Queue'),
-            subtitle: const Text('Delete unsynced reports'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          _buildSettingCard(
+            icon: Icons.delete_outline,
+            title: 'Clear Offline Queue',
+            subtitle: 'Delete unsynced reports',
             onTap: _clearOfflineQueue,
           ),
-          ListTile(
-            leading: const Icon(Icons.delete_forever, color: Colors.red),
-            title: const Text('Delete my reports'),
-            subtitle: const Text('Permanently delete all your reports'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          _buildSettingCard(
+            icon: Icons.delete_forever,
+            title: 'Delete my reports',
+            subtitle: 'Permanently delete all your reports',
             onTap: () async {
               final confirmed = await showDialog<bool>(
                 context: context,
@@ -163,22 +222,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 }
               }
             },
+            iconColor: Colors.red,
           ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.security),
-            title: const Text('Permissions'),
-            subtitle: const Text('Location, Camera, Microphone'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          const SizedBox(height: AppTheme.spacing8),
+          // Security & Permissions
+          _buildSettingCard(
+            icon: Icons.security,
+            title: 'Permissions',
+            subtitle: 'Location, Camera, Microphone',
             onTap: _requestPermissions,
           ),
-          ListTile(
-            leading: const Icon(Icons.lock),
-            title: const Text('Two-factor authentication'),
-            subtitle: const Text('Add an extra layer of security'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          _buildSettingCard(
+            icon: Icons.lock,
+            title: 'Two-factor authentication',
+            subtitle: 'Add an extra layer of security',
             onTap: () {
-              // TODO: Implement 2FA
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -194,11 +252,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.storage),
-            title: const Text('Offline data'),
-            subtitle: Text('$_offlineQueueSize reports queued'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          _buildSettingCard(
+            icon: Icons.storage,
+            title: 'Offline data',
+            subtitle: '$_offlineQueueSize reports queued',
             onTap: () {
               showDialog(
                 context: context,
@@ -215,11 +272,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.phone),
-            title: const Text('Emergency hotlines'),
-            subtitle: const Text('View emergency contacts'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          _buildSettingCard(
+            icon: Icons.phone,
+            title: 'Emergency hotlines',
+            subtitle: 'View emergency contacts',
             onTap: () {
               showDialog(
                 context: context,
@@ -246,12 +302,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               );
             },
           ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('About'),
-            subtitle: const Text('Talkam Liberia v0.1.0'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          const SizedBox(height: AppTheme.spacing8),
+          // About
+          _buildSettingCard(
+            icon: Icons.info_outline,
+            title: 'About',
+            subtitle: 'Talkam Liberia v0.1.0',
             onTap: () {
               showAboutDialog(
                 context: context,
@@ -261,19 +317,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('Privacy Policy'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          _buildSettingCard(
+            icon: Icons.privacy_tip,
+            title: 'Privacy Policy',
+            subtitle: 'View our privacy policy',
             onTap: () {
               // Navigate to privacy policy
             },
           ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout', style: TextStyle(color: Colors.red)),
+          const SizedBox(height: AppTheme.spacing8),
+          // Logout
+          AppCard(
             onTap: _logout,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.logout,
+                  color: Colors.red,
+                ),
+                const SizedBox(width: AppTheme.spacing8),
+                Text(
+                  'Logout',
+                  style: AppTheme.heading3.copyWith(color: Colors.red),
+                ),
+              ],
+            ),
           ),
         ],
       ),
