@@ -27,14 +27,39 @@ class TalkamApp extends StatelessWidget {
     return MaterialApp(
       title: 'Talkam Liberia',
       theme: ThemeData(
-        primarySwatch: Colors.pink,
-        primaryColor: const Color(0xFFE91E63), // Hot Pink/Magenta
+        primarySwatch: Colors.blue,
+        primaryColor: const Color(0xFF1F4DD8), // Deep Blue (matching web frontend)
         scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'DM Sans',
+        fontFamily: 'Inter', // Matching web frontend
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFE91E63),
+          seedColor: const Color(0xFF1F4DD8), // Deep Blue
+          primary: const Color(0xFF1F4DD8),
+          secondary: const Color(0xFF1ABF7E), // Emerald
           brightness: Brightness.light,
+        ),
+        cardTheme: CardTheme(
+          elevation: 1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1F4DD8),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
         ),
       ),
       home: const WelcomeScreen(), // Start with welcome/onboarding

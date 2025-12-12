@@ -55,14 +55,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Home',
+          'Dashboard',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
+            color: Color(0xFF171717),
           ),
         ),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        foregroundColor: const Color(0xFF171717),
         elevation: 0,
         actions: [
           Padding(
@@ -76,14 +77,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade800,
+                backgroundColor: const Color(0xFF1F4DD8), // Primary blue
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
-              child: const Text('New Report'),
+              child: const Text(
+                'New Report',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
           ),
         ],

@@ -223,9 +223,16 @@ class _ReportsFeedScreenState extends ConsumerState<ReportsFeedScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: const Color(0xFFF3F4F6), // Muted background matching web
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: const Color(0xFFE5E7EB)), // Border color matching web
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () {
