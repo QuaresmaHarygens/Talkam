@@ -8,7 +8,6 @@ import '../services/offline_storage.dart';
 import '../services/media_service.dart';
 import '../providers.dart';
 import '../theme/app_theme.dart';
-import '../widgets/app_card.dart';
 import '../widgets/app_button.dart';
 
 class CreateReportScreen extends ConsumerStatefulWidget {

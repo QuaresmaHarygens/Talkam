@@ -5,7 +5,6 @@ import '../../providers.dart';
 import '../../services/device_token_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_button.dart';
-import '../../widgets/app_card.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
