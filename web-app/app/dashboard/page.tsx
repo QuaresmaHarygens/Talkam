@@ -43,15 +43,26 @@ export default function DashboardPage() {
 
         // Load notifications
         const notificationsResponse = await apiClient.getNotifications({ limit: 10 })
-        const transformedNotifications = (notificationsResponse.notifications || []).map((n: any) => ({
-          id: n.id,
-          title: n.title || 'Notification',
-          message: n.message || '',
-          type: n.notification_type?.includes('challenge') ? 'challenge' : 'report',
-          read: n.read || false,
-          createdAt: n.created_at || new Date().toISOString(),
-          actionUrl: n.report_id ? `/verify/${n.report_id}` : n.challenge_id ? `/challenges/${n.challenge_id}` : undefined,
-        }))
+        const transformedNotifications = (notificationsResponse.notifications || []).map((n: any) => {
+          let notificationType: 'report' | 'challenge' | 'verification' | 'system' = 'system'
+          if (n.notification_type?.includes('challenge')) {
+            notificationType = 'challenge'
+          } else if (n.notification_type?.includes('verification') || n.notification_type?.includes('attestation')) {
+            notificationType = 'verification'
+          } else if (n.report_id) {
+            notificationType = 'report'
+          }
+
+          return {
+            id: n.id,
+            title: n.title || 'Notification',
+            message: n.message || '',
+            type: notificationType,
+            read: n.read || false,
+            createdAt: n.created_at || new Date().toISOString(),
+            actionUrl: n.report_id ? `/verify/${n.report_id}` : n.challenge_id ? `/challenges/${n.challenge_id}` : undefined,
+          }
+        })
         setNotifications(transformedNotifications)
       } catch (err) {
         console.error('Error loading dashboard data:', err)
