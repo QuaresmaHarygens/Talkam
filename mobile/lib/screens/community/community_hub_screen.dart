@@ -159,7 +159,22 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
             _buildTopNavigation(),
             
             // Outstanding Challenges Banner
-            if (_outstandingCount > 0) _buildOutstandingBanner(),
+            if (_outstandingCount > 0) ...[
+              _buildOutstandingBanner(),
+              if (_outstandingCount > 0)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'EXPIRING IN 20 DAYS',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 11,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+            ],
             
             // Your Summary Section
             _buildSummarySection(),
@@ -174,6 +189,9 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
             Expanded(
               child: _buildChallengesList(),
             ),
+            
+            // Our Badges Section
+            _buildBadgesSection(),
           ],
         ),
       ),
@@ -187,6 +205,80 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
         },
         backgroundColor: const Color(0xFFE91E63), // Hot pink
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildBadgesSection() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'OUR BADGES',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildBadgeCard(
+                icon: Icons.star,
+                label: 'LEADER',
+                color: const Color(0xFFE91E63),
+              ),
+              const SizedBox(width: 12),
+              _buildBadgeCard(
+                icon: Icons.person_add,
+                label: 'NEW USER',
+                color: const Color(0xFFE91E63),
+              ),
+              const SizedBox(width: 12),
+              _buildBadgeCard(
+                icon: Icons.volunteer_activism,
+                label: 'VOLUNTEER',
+                color: const Color(0xFFE91E63),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeCard({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -624,17 +716,17 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    // Category Icon
+                    // Category Icon (circular with icon)
                     Container(
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE91E63).withOpacity(0.1),
+                        color: _getCategoryColor(challenge.category).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         _getCategoryIcon(challenge.category),
-                        color: const Color(0xFFE91E63),
+                        color: _getCategoryColor(challenge.category),
                         size: 28,
                       ),
                     ),
@@ -654,7 +746,7 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           if (daysUntilExpiry != null && daysUntilExpiry > 0)
                             Text(
                               'EXPIRES IN $daysUntilExpiry ${daysUntilExpiry == 1 ? 'DAY' : 'DAYS'}',
@@ -664,6 +756,7 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
                                     ? Colors.red
                                     : Colors.grey.shade600,
                                 fontWeight: FontWeight.w500,
+                                letterSpacing: 0.5,
                               ),
                             )
                           else if (challenge.status == 'completed')
@@ -673,15 +766,20 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
                                 fontSize: 12,
                                 color: Colors.green.shade600,
                                 fontWeight: FontWeight.w500,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           if (challenge.progressPercentage < 100 && challenge.status == 'active')
-                            Text(
-                              'SUBMISSION UNDER REVIEW',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.orange.shade600,
-                                fontWeight: FontWeight.w500,
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                'SUBMISSION UNDER REVIEW',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.orange.shade600,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
                             ),
                         ],
@@ -689,17 +787,19 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
                     ),
                     // Points Badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '$points points',
+                        '$points\npoints',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: Colors.grey.shade700,
+                          height: 1.2,
                         ),
                       ),
                     ),
@@ -733,6 +833,29 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
         return Icons.attach_money;
       default:
         return Icons.flag;
+    }
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'social':
+        return Colors.blue;
+      case 'health':
+        return Colors.red;
+      case 'education':
+        return Colors.purple;
+      case 'environmental':
+        return Colors.green;
+      case 'security':
+        return Colors.orange;
+      case 'religious':
+        return Colors.indigo;
+      case 'infrastructure':
+        return Colors.brown;
+      case 'economic':
+        return Colors.teal;
+      default:
+        return const Color(0xFFE91E63);
     }
   }
 }
