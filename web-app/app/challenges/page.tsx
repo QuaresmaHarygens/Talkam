@@ -184,7 +184,8 @@ export default function ChallengesPage() {
               </CardContent>
             </Card>
           )}
-        </div>
+          </div>
+        )}
       </main>
       <TabBar />
     </div>
