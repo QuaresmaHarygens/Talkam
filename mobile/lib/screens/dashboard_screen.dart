@@ -11,7 +11,7 @@ import 'notifications_screen.dart';
 import 'community/community_hub_screen.dart';
 import 'reports/report_detail_screen.dart';
 import '../models/report.dart';
-import 'package:flutter/material.dart' show Icons;
+import 'package:lucide_icons/lucide_icons.dart';
 
 /// Enhanced Dashboard matching web frontend design
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -136,7 +136,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       childAspectRatio: 1.1,
       children: [
         _buildActionCard(
-          icon: LucideIcons.fileText,
+          icon: Icons.description,
           title: 'Report Issue',
           subtitle: 'Submit a new civic issue',
           color: AppTheme.primary,
@@ -149,7 +149,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           },
         ),
         _buildActionCard(
-          icon: LucideIcons.checkCircle,
+          icon: Icons.check_circle,
           title: 'Verify Reports',
           subtitle: 'Help verify community reports',
           color: AppTheme.secondary,
@@ -158,7 +158,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           },
         ),
         _buildActionCard(
-          icon: LucideIcons.users,
+          icon: Icons.people,
           title: 'Challenges',
           subtitle: 'Join community challenges',
           color: AppTheme.primary,
@@ -171,7 +171,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           },
         ),
         _buildActionCard(
-          icon: LucideIcons.mapPin,
+          icon: Icons.map,
           title: 'Map View',
           subtitle: 'Explore issues on map',
           color: AppTheme.secondary,
@@ -213,7 +213,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Icon(icon, color: color, size: 24),
               ),
               Icon(
-                LucideIcons.arrowRight,
+                Icons.arrow_forward,
                 size: 16,
                 color: AppTheme.mutedForeground,
               ),
@@ -249,7 +249,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             );
           },
-          margin: const EdgeInsets.only(bottom: AppTheme.spacing12),
+          margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(AppTheme.spacing16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,7 +320,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           children: [
             Icon(
-              LucideIcons.fileText,
+              Icons.description,
               size: 48,
               color: AppTheme.mutedForeground,
             ),
