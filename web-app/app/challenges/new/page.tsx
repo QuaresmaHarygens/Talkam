@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useStore } from "@/lib/store"
-import { apiClient } from "@/lib/api/client"
+import { mockAPI } from "@/lib/mock/api"
 
 export default function NewChallengePage() {
   const router = useRouter()
@@ -25,22 +25,50 @@ export default function NewChallengePage() {
 
     setIsSubmitting(true)
     try {
-      const challenge = await mockAPI.challenges.create({
+      // Get user's location (default to Monrovia)
+      let lat = 6.4281
+      let lng = -10.7619
+      
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+          })
+          lat = position.coords.latitude
+          lng = position.coords.longitude
+        } catch (err) {
+          // Use default location
+        }
+      }
+
+      const challenge = await apiClient.createChallenge({
         title,
         description,
         category,
-        status: "active",
-        progress: 0,
-        participants: 0,
-        volunteers: 0,
-        donors: 0,
-        location: {
-          latitude: 6.4281,
-          longitude: -10.7619,
-          county: "Montserrado",
-        },
+        latitude: lat,
+        longitude: lng,
+        county: "Montserrado",
       })
-      addChallenge(challenge)
+      
+      // Transform to frontend format
+      const transformedChallenge = {
+        id: challenge.id || String(Date.now()),
+        title: challenge.title || title,
+        description: challenge.description || description,
+        category: challenge.category || category,
+        status: challenge.status || "active",
+        progress: challenge.progress_percentage || 0,
+        participants: challenge.participant_count || 0,
+        volunteers: challenge.volunteer_count || 0,
+        donors: challenge.donor_count || 0,
+        location: {
+          latitude: challenge.latitude || lat,
+          longitude: challenge.longitude || lng,
+          county: challenge.county || "Montserrado",
+        },
+        createdAt: challenge.created_at || new Date().toISOString(),
+      }
+      addChallenge(transformedChallenge)
       router.push("/challenges")
     } catch (error) {
       console.error("Failed to create challenge:", error)

@@ -6,7 +6,7 @@ import { Navbar } from "@/components/navbar"
 import { TabBar } from "@/components/tab-bar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { apiClient } from "@/lib/api/client"
+import { mockAPI } from "@/lib/mock/api"
 import { Users, TrendingUp, Heart, MapPin } from "lucide-react"
 import type { Challenge } from "@/lib/mock/api"
 
@@ -15,16 +15,62 @@ export default function ChallengeDetailPage() {
   const router = useRouter()
   const [challenge, setChallenge] = useState<Challenge | null>(null)
 
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
-    if (params.id) {
-      mockAPI.challenges.get(params.id as string).then(setChallenge)
+    const loadChallenge = async () => {
+      if (!params.id) return
+      try {
+        setLoading(true)
+        setError(null)
+        const challenge = await apiClient.getChallenge(params.id as string)
+        const transformedChallenge = {
+          id: challenge.id,
+          title: challenge.title || '',
+          description: challenge.description || '',
+          category: challenge.category || 'social',
+          status: challenge.status || 'active',
+          progress: challenge.progress_percentage || 0,
+          participants: challenge.participant_count || 0,
+          volunteers: challenge.volunteer_count || 0,
+          donors: challenge.donor_count || 0,
+          location: {
+            latitude: challenge.latitude || 6.4281,
+            longitude: challenge.longitude || -10.7619,
+            county: challenge.county || 'Unknown',
+          },
+          createdAt: challenge.created_at || new Date().toISOString(),
+          expiresAt: challenge.expires_at,
+        }
+        setChallenge(transformedChallenge)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load challenge')
+        console.error('Error loading challenge:', err)
+      } finally {
+        setLoading(false)
+      }
     }
+    loadChallenge()
   }, [params.id])
 
-  if (!challenge) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (error || !challenge) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-destructive">{error || 'Challenge not found'}</p>
+            <Button onClick={() => router.push('/challenges')} className="mt-4">Back to Challenges</Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
