@@ -211,51 +211,65 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
 
   Widget _buildBadgesSection() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'OUR BADGES',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Use LayoutBuilder to make badges responsive
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // Calculate badge width based on available space
-              final badgeWidth = (constraints.maxWidth - 24) / 3; // 3 badges with 12px spacing
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildBadgeCard(
-                    icon: Icons.star,
-                    label: 'LEADER',
-                    color: const Color(0xFFE91E63),
-                    width: badgeWidth,
-                  ),
-                  _buildBadgeCard(
-                    icon: Icons.person_add,
-                    label: 'NEW USER',
-                    color: const Color(0xFFE91E63),
-                    width: badgeWidth,
-                  ),
-                  _buildBadgeCard(
-                    icon: Icons.volunteer_activism,
-                    label: 'VOLUNTEER',
-                    color: const Color(0xFFE91E63),
-                    width: badgeWidth,
-                  ),
-                ],
-              );
-            },
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 4,
+            offset: const Offset(0, -2),
           ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'OUR BADGES',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Use LayoutBuilder to make badges responsive
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate badge width based on available space
+                final badgeWidth = (constraints.maxWidth - 24) / 3; // 3 badges with 12px spacing
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildBadgeCard(
+                      icon: Icons.star,
+                      label: 'LEADER',
+                      color: const Color(0xFFE91E63),
+                      width: badgeWidth,
+                    ),
+                    _buildBadgeCard(
+                      icon: Icons.person_add,
+                      label: 'NEW USER',
+                      color: const Color(0xFFE91E63),
+                      width: badgeWidth,
+                    ),
+                    _buildBadgeCard(
+                      icon: Icons.volunteer_activism,
+                      label: 'VOLUNTEER',
+                      color: const Color(0xFFE91E63),
+                      width: badgeWidth,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -598,7 +612,7 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
           final isSelected = _selectedCategory == entry.key || (_selectedCategory == null && entry.key == 'all');
           final isAll = entry.key == 'all';
           return Container(
-            width: 140,
+            width: 120, // Reduced from 140 for better fit
             margin: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFFE91E63) : Colors.grey.shade100,
@@ -612,36 +626,40 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
                 _loadChallenges();
               },
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (isAll)
-                      const Icon(Icons.all_inclusive, color: Colors.white, size: 32)
+                      const Icon(Icons.all_inclusive, color: Colors.white, size: 28)
                     else
                       Icon(
                         _getCategoryIcon(entry.key),
                         color: isSelected ? Colors.white : Colors.grey.shade600,
-                        size: 32,
+                        size: 28,
                       ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       entry.value.toUpperCase(),
                       style: TextStyle(
                         color: isSelected ? Colors.white : Colors.grey.shade700,
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
                       ),
                       textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${_challenges.where((c) => entry.key == 'all' || c.category == entry.key).length} items',
                       style: TextStyle(
                         color: isSelected ? Colors.white.withOpacity(0.9) : Colors.grey.shade600,
-                        fontSize: 10,
+                        fontSize: 9,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -801,20 +819,23 @@ class _CommunityHubScreenState extends ConsumerState<CommunityHubScreen> {
                       ),
                     ),
                     // Points Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '$points\npoints',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade700,
-                          height: 1.2,
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '$points pts',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
