@@ -7,6 +7,9 @@ import 'package:geocoding/geocoding.dart';
 import '../services/offline_storage.dart';
 import '../services/media_service.dart';
 import '../providers.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_card.dart';
+import '../widgets/app_button.dart';
 
 class CreateReportScreen extends ConsumerStatefulWidget {
   const CreateReportScreen({super.key});
@@ -460,10 +463,19 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Report an issue.'),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Report an issue.',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.foreground,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: AppTheme.foreground,
       ),
       body: Form(
         key: _formKey,
@@ -478,14 +490,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            // Category grid matching wireframe
+            // Category grid matching web frontend
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: AppTheme.spacing16,
+                mainAxisSpacing: AppTheme.spacing16,
                 childAspectRatio: 1.1,
               ),
               itemCount: _categories.length,
@@ -496,18 +508,19 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
                 return InkWell(
                   onTap: () => setState(() => _selectedCategory = categoryKey),
+                  borderRadius: BorderRadius.circular(AppTheme.radius),
                   child: Container(
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFFF59E0B).withOpacity(0.2)
-                          : Colors.grey.shade100,
+                          ? AppTheme.primary.withOpacity(0.1)
+                          : AppTheme.muted,
                       border: Border.all(
                         color: isSelected
-                            ? const Color(0xFFF59E0B)
-                            : Colors.grey.shade300,
+                            ? AppTheme.primary
+                            : AppTheme.border,
                         width: isSelected ? 2 : 1,
                       ),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppTheme.radius),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -516,8 +529,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                           category['icon'] as IconData,
                           size: 32,
                           color: isSelected
-                              ? const Color(0xFFF59E0B)
-                              : Colors.grey.shade600,
+                              ? AppTheme.primary
+                              : AppTheme.mutedForeground,
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -527,8 +540,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                             fontWeight:
                                 isSelected ? FontWeight.bold : FontWeight.normal,
                             color: isSelected
-                                ? const Color(0xFF0F172A)
-                                : Colors.grey.shade700,
+                                ? AppTheme.primary
+                                : AppTheme.mutedForeground,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -551,28 +564,20 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: AppButton(
+                    label: 'Photo/Video',
                     onPressed: _uploadingMedia ? null : () => _showMediaPicker(context),
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Photo/Video'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade100,
-                      foregroundColor: Colors.black87,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
+                    variant: ButtonVariant.outline,
+                    icon: Icons.camera_alt,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppTheme.spacing8),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: AppButton(
+                    label: 'Audio',
                     onPressed: _uploadingMedia ? null : () => _recordAudio(context),
-                    icon: const Icon(Icons.mic),
-                    label: const Text('Audio'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade100,
-                      foregroundColor: Colors.black87,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
+                    variant: ButtonVariant.outline,
+                    icon: Icons.mic,
                   ),
                 ),
               ],
@@ -616,50 +621,56 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               onSelectionChanged: (Set<String> newSelection) {
                 setState(() => _selectedSeverity = newSelection.first);
               },
+              style: SegmentedButton.styleFrom(
+                selectedBackgroundColor: AppTheme.primary,
+                selectedForegroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radius),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             // Summary field
             TextFormField(
               controller: _summaryController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Summary',
                 hintText: 'Brief summary of the issue...',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radius),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
               maxLines: 2,
               validator: (value) =>
                   value?.isEmpty ?? true ? 'Summary is required' : null,
             ),
-            const SizedBox(height: 16),
-            // Text Description matching wireframe
+            const SizedBox(height: AppTheme.spacing16),
+            // Text Description matching web frontend
             TextFormField(
               controller: _detailsController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Text Description',
                 hintText: 'Describe the issue...',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radius),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
               maxLines: 6,
             ),
             const SizedBox(height: 16),
             // Get Location Button - styled to match mockup
-            ElevatedButton.icon(
+            AppButton(
+              label: _currentPosition == null
+                  ? 'Get Location'
+                  : 'Location: ${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}',
               onPressed: _getCurrentLocation,
-              icon: const Icon(Icons.location_on),
-              label: Text(
-                _currentPosition == null
-                    ? 'Get Location'
-                    : 'Location: ${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}',
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink.shade50,
-                foregroundColor: Colors.pink.shade700,
-                side: BorderSide(color: Colors.pink.shade300, width: 1),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+              variant: ButtonVariant.outline,
+              icon: Icons.location_on,
+              size: ButtonSize.large,
             ),
             const SizedBox(height: 24),
             // Anonymous checkbox matching wireframe
@@ -669,16 +680,12 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               onChanged: (value) => setState(() => _anonymous = value ?? false),
               controlAffinity: ListTileControlAffinity.leading,
             ),
-            const SizedBox(height: 24),
-            ElevatedButton(
+            const SizedBox(height: AppTheme.spacing24),
+            AppButton(
+              label: 'Submit Report',
               onPressed: _submitting ? null : _submitReport,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF59E0B),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: _submitting
-                  ? const CircularProgressIndicator()
-                  : const Text('Submit Report', style: TextStyle(fontSize: 16)),
+              isLoading: _submitting,
+              size: ButtonSize.large,
             ),
           ],
         ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../auth/login_screen.dart';
+import '../home_screen.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_button.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -7,19 +10,20 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(AppTheme.spacing24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // Speech bubble icon with play symbol
+              // App Logo/Icon
               Container(
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B), // Sunrise Amber
+                  color: AppTheme.primary,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -28,58 +32,93 @@ class WelcomeScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 32),
-              const Text(
-                'Talkam Liberia',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A), // Deep Lagoon
+              const SizedBox(height: AppTheme.spacing24),
+              Text(
+                'TalkAm',
+                style: AppTheme.heading1.copyWith(
+                  color: AppTheme.primary,
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Welcome to Talkam Liberia. Report community issues safely and anonymously.',
+              const SizedBox(height: AppTheme.spacing16),
+              Text(
+                'Your voice matters. Report issues, verify reports, and build a better community together.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF475569),
+                style: AppTheme.body.copyWith(
+                  color: AppTheme.mutedForeground,
                   height: 1.5,
                 ),
               ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A), // Deep Lagoon
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Get started',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+              const SizedBox(height: AppTheme.spacing24),
+              // Feature highlights
+              _buildFeatureItem(
+                icon: Icons.shield,
+                text: 'Report civic issues safely and securely',
+                color: AppTheme.primary,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppTheme.spacing16),
+              _buildFeatureItem(
+                icon: Icons.people,
+                text: 'Verify reports and help your community',
+                color: AppTheme.secondary,
+              ),
+              const SizedBox(height: AppTheme.spacing16),
+              _buildFeatureItem(
+                icon: Icons.map,
+                text: 'Track issues on an interactive map',
+                color: AppTheme.primary,
+              ),
+              const Spacer(),
+              // Buttons
+              AppButton(
+                label: 'Get Started',
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => const LoginScreen(),
+                    ),
+                  );
+                },
+                size: ButtonSize.large,
+                icon: Icons.arrow_forward,
+              ),
+              const SizedBox(height: AppTheme.spacing16),
+              AppButton(
+                label: 'Continue as Guest',
+                onPressed: () {
+                  // Set guest mode and navigate to dashboard
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => const HomeScreen(),
+                    ),
+                  );
+                },
+                variant: ButtonVariant.outline,
+                size: ButtonSize.large,
+              ),
+              const SizedBox(height: AppTheme.spacing24),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required String text,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: AppTheme.spacing16),
+        Expanded(
+          child: Text(
+            text,
+            style: AppTheme.bodySmall,
+          ),
+        ),
+      ],
     );
   }
 }

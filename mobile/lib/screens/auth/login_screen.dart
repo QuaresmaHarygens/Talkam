@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../home_screen.dart';
 import '../../providers.dart';
 import '../../services/device_token_service.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_button.dart';
+import '../../widgets/app_card.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -104,38 +107,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: AppTheme.background,
         body: SafeArea(
           child: Form(
             key: _formKey,
             child: ListView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppTheme.spacing24),
               children: [
                 const SizedBox(height: 48),
-                Image.asset(
-                  'assets/images/logo.png',
+                Container(
+                  width: 80,
                   height: 80,
-                  errorBuilder: (_, __, ___) => const Icon(
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
                     Icons.shield,
-                    size: 80,
-                    color: Color(0xFFF59E0B),
+                    size: 40,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Talkam Liberia',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
+                const SizedBox(height: 24),
+                Text(
+                  'TalkAm',
+                  style: AppTheme.heading1.copyWith(
+                    color: AppTheme.primary,
                   ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sign in to your account to continue',
+                  style: AppTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
                 // Tab Bar
                 TabBar(
-                  indicatorColor: const Color(0xFF0F172A),
-                  labelColor: const Color(0xFF0F172A),
-                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: AppTheme.primary,
+                  labelColor: AppTheme.primary,
+                  unselectedLabelColor: AppTheme.mutedForeground,
+                  labelStyle: AppTheme.body.copyWith(fontWeight: FontWeight.w600),
                   tabs: const [
                     Tab(text: 'Log in'),
                     Tab(text: 'Sign up'),
@@ -166,16 +179,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       children: [
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Phone Number',
                   hintText: '+231700000000',
-                  prefixIcon: Icon(Icons.phone),
+                  prefixIcon: const Icon(Icons.phone),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radius),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Phone number required' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.spacing16),
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
@@ -188,6 +206,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radius),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 obscureText: _obscurePassword,
                 validator: (value) =>
@@ -262,35 +285,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       children: [
         TextFormField(
           controller: _fullNameController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Full Name',
-            prefixIcon: Icon(Icons.person),
+            prefixIcon: const Icon(Icons.person),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radius),
+            ),
+            filled: true,
+            fillColor: Colors.white,
           ),
           validator: (value) =>
               value?.isEmpty ?? true ? 'Full name required' : null,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppTheme.spacing16),
         TextFormField(
           controller: _phoneController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Phone Number',
             hintText: '+231700000000',
-            prefixIcon: Icon(Icons.phone),
+            prefixIcon: const Icon(Icons.phone),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radius),
+            ),
+            filled: true,
+            fillColor: Colors.white,
           ),
           keyboardType: TextInputType.phone,
           validator: (value) =>
               value?.isEmpty ?? true ? 'Phone number required' : null,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppTheme.spacing16),
         TextFormField(
           controller: _emailController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Email (Optional)',
-            prefixIcon: Icon(Icons.email),
+            prefixIcon: const Icon(Icons.email),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radius),
+            ),
+            filled: true,
+            fillColor: Colors.white,
           ),
           keyboardType: TextInputType.emailAddress,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppTheme.spacing16),
         TextFormField(
           controller: _passwordController,
           decoration: InputDecoration(
@@ -303,33 +341,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               onPressed: () =>
                   setState(() => _obscurePassword = !_obscurePassword),
             ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radius),
+            ),
+            filled: true,
+            fillColor: Colors.white,
           ),
           obscureText: _obscurePassword,
           validator: (value) =>
               value?.isEmpty ?? true ? 'Password required' : null,
         ),
         const SizedBox(height: 24),
-        ElevatedButton(
+        AppButton(
+          label: 'Sign up',
           onPressed: _loading ? null : _register,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0F172A),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: _loading
-              ? const CircularProgressIndicator(color: Colors.white)
-              : const Text(
-                  'Sign up',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+          isLoading: _loading,
+          size: ButtonSize.large,
         ),
         const SizedBox(height: 16),
         Center(
           child: TextButton(
             onPressed: _loading ? null : _anonymousLogin,
-            child: const Text('Anonymous mode'),
+            child: Text(
+              'Continue as Guest',
+              style: AppTheme.bodySmall.copyWith(color: AppTheme.primary),
+            ),
           ),
         ),
       ],
