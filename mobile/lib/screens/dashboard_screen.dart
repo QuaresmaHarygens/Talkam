@@ -11,7 +11,7 @@ import 'notifications_screen.dart';
 import 'community/community_hub_screen.dart';
 import 'reports/report_detail_screen.dart';
 import '../models/report.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter/material.dart' show Icons;
 
 /// Enhanced Dashboard matching web frontend design
 class DashboardScreen extends ConsumerStatefulWidget {

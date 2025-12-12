@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets? padding;
+  final EdgeInsets? margin;
   final VoidCallback? onTap;
   final Color? backgroundColor;
   final double? elevation;
@@ -13,6 +14,7 @@ class AppCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding,
+    this.margin,
     this.onTap,
     this.backgroundColor,
     this.elevation,
@@ -20,7 +22,7 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    Widget card = Card(
       elevation: elevation ?? 0,
       color: backgroundColor ?? Colors.white,
       shape: RoundedRectangleBorder(
@@ -36,5 +38,10 @@ class AppCard extends StatelessWidget {
         ),
       ),
     );
+
+    if (margin != null) {
+      return Container(margin: margin, child: card);
+    }
+    return card;
   }
 }
