@@ -34,7 +34,8 @@ class AttestationResponse(BaseModel):
 class NotificationResponse(BaseModel):
     """Notification for user."""
     id: str
-    report_id: str
+    report_id: str | None = None  # Optional for challenge notifications
+    challenge_id: str | None = None  # Optional for challenge notifications
     title: str
     message: str
     read: bool

@@ -44,6 +44,7 @@ async def get_notifications(
                     NotificationResponse(
                         id=str(notification.id),
                         report_id=None,  # Challenge notifications don't have report_id
+                        challenge_id=str(notification.challenge_id),
                         title=notification.title,
                         message=notification.message,
                         read=notification.read,
