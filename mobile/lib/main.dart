@@ -38,7 +38,7 @@ class TalkamApp extends StatelessWidget {
           secondary: const Color(0xFF1ABF7E), // Emerald
           brightness: Brightness.light,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
