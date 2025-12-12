@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { reportsApi, TrackingResponse } from '@/lib/api/endpoints';
+import { apiClient } from '@/lib/api/client';
 import { ClockIcon, CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const statusConfig: Record<string, { icon: any; color: string; label: string }> = {
@@ -59,10 +59,19 @@ export default function TrackReportPage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await reportsApi.track(reportId);
+      const report = await apiClient.getReport(reportId);
+      const data: TrackingResponse = {
+        report_id: report.id || reportId,
+        status: report.status || 'submitted',
+        category: report.category || 'unknown',
+        severity: report.severity || 'medium',
+        created_at: report.created_at || new Date().toISOString(),
+        updated_at: report.updated_at,
+        message: `Report is ${report.status || 'submitted'}`,
+      };
       setTrackingInfo(data);
     } catch (err: any) {
-      setError(err.detail || 'Failed to fetch report information');
+      setError(err.message || err.detail || 'Failed to fetch report information');
     } finally {
       setLoading(false);
     }

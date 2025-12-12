@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { reportsApi, mediaApi } from '@/lib/api/endpoints';
+import { apiClient } from '@/lib/api/client';
 import { 
   DocumentTextIcon, 
   PhotoIcon, 
@@ -151,29 +151,25 @@ export default function SubmitReportPage() {
       setUploading(false);
 
       // Create report
-      const report = await reportsApi.create({
+      const report = await apiClient.createReport({
+        summary: data.summary,
+        details: data.details || data.summary,
         category: data.category,
         severity: data.severity,
-        summary: data.summary,
-        details: data.details,
-        anonymous: data.anonymous,
-        location: {
-          latitude: data.latitude,
-          longitude: data.longitude,
-          county: data.county,
-          district: data.district,
-        },
-        media: mediaRefs,
-        witness_count: data.witness_count,
-      });
+        latitude: data.latitude,
+        longitude: data.longitude,
+        county: data.county,
+        district: data.district,
+        media_keys: mediaRefs.map((ref) => ref.key),
+      })
 
       setSuccess(true);
-      setReportId(report.report_id || null);
+      setReportId(report.id || null);
       
       // Redirect to tracking page after 3 seconds
-      if (report.report_id) {
+      if (report.id) {
         setTimeout(() => {
-          router.push(`/track/${report.report_id}`);
+          router.push(`/track/${report.id}`);
         }, 3000);
       }
     } catch (error: any) {
