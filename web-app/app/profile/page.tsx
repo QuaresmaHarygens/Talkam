@@ -6,16 +6,48 @@ import { TabBar } from "@/components/tab-bar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStore } from "@/lib/store"
-import { mockAPI } from "@/lib/mock/api"
+import { apiClient } from "@/lib/api/client"
 import { User, FileText, CheckCircle, Users, Settings } from "lucide-react"
 
 export default function ProfilePage() {
   const { user, reports, challenges } = useStore()
   const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    mockAPI.profile.get().then(setProfile)
-  }, [])
+    const loadProfile = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Calculate stats from user's data
+        const myReports = reports.filter((r) => r.status !== "rejected")
+        const myVerifications = reports.filter((r) => r.status === "verified")
+        const myChallenges = challenges
+        const myCreatedChallenges = challenges.filter((c) => c.status === "active" || c.status === "completed")
+
+        setProfile({
+          id: user.id || "guest",
+          name: user.name || "Guest User",
+          email: user.email || "guest@example.com",
+          avatar: null,
+          stats: {
+            reportsSubmitted: myReports.length,
+            reportsVerified: myVerifications.length,
+            challengesCreated: myCreatedChallenges.length,
+            challengesJoined: myChallenges.length,
+          },
+        })
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load profile')
+        console.error('Error loading profile:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProfile()
+  }, [user, reports, challenges])
 
   const myReports = reports.filter((r) => r.status !== "rejected")
   const myVerifications = reports.filter((r) => r.status === "verified")

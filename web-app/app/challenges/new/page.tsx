@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useStore } from "@/lib/store"
-import { mockAPI } from "@/lib/mock/api"
+import { apiClient } from "@/lib/api/client"
 
 export default function NewChallengePage() {
   const router = useRouter()

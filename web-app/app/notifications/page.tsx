@@ -6,15 +6,50 @@ import { TabBar } from "@/components/tab-bar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStore } from "@/lib/store"
-import { mockAPI } from "@/lib/mock/api"
+import { apiClient } from "@/lib/api/client"
 import { Bell, CheckCircle, Users, MapPin, X } from "lucide-react"
 
 export default function NotificationsPage() {
   const { notifications, setNotifications, markNotificationRead } = useStore()
   const [swipedId, setSwipedId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    mockAPI.notifications.list().then(setNotifications)
+    const loadNotifications = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await apiClient.getNotifications({ limit: 50 })
+        const transformedNotifications = (response.notifications || []).map((n: any) => {
+          let notificationType: 'report' | 'challenge' | 'verification' | 'system' = 'system'
+          if (n.notification_type?.includes('challenge')) {
+            notificationType = 'challenge'
+          } else if (n.notification_type?.includes('verification') || n.notification_type?.includes('attestation')) {
+            notificationType = 'verification'
+          } else if (n.report_id) {
+            notificationType = 'report'
+          }
+
+          return {
+            id: n.id,
+            title: n.title || 'Notification',
+            message: n.message || '',
+            type: notificationType,
+            read: n.read || false,
+            createdAt: n.created_at || new Date().toISOString(),
+            actionUrl: n.report_id ? `/verify/${n.report_id}` : n.challenge_id ? `/challenges/${n.challenge_id}` : undefined,
+          }
+        })
+        setNotifications(transformedNotifications)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load notifications')
+        console.error('Error loading notifications:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadNotifications()
   }, [setNotifications])
 
   const getIcon = (type: string) => {
@@ -49,8 +84,27 @@ export default function NotificationsPage() {
           <p className="text-muted-foreground">Stay updated with community activity</p>
         </div>
 
-        <div className="space-y-2">
-          {notifications.length > 0 ? (
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-destructive">{error}</p>
+              <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Notifications List */}
+        {!loading && !error && (
+          <div className="space-y-2">
+            {notifications.length > 0 ? (
             notifications.map((notification) => (
               <div
                 key={notification.id}
